@@ -26,7 +26,7 @@ loadRData <- function(fileName){
   load(fileName)
   get(ls()[ls() != "fileName"])
 }
-data <- loadRData("sim_data/GM_3_500.RData")
+data <- loadRData("sim_data/GM_3_1500.RData")
 
 ## number of mixture components
 K_nc <- 10
@@ -34,7 +34,7 @@ K_nc <- 10
 alpha_1 = 0.01
 alpha_2 = 0.1
 alpha_3 = 0.9
-M_it <- 10000
+M_it <- 5000
 burnin_ <- 2000
 
 pk_n_001 = MCMC_function(data, e0=alpha_1, K=K_nc, M=M_it, burnin=burnin_) 
@@ -49,4 +49,4 @@ df_= data.frame(K= 1:K_nc,
 
 df_$alpha = c(rep(alpha_1,K_nc),rep(alpha_2,K_nc),rep(alpha_3,K_nc))  
 df_$N = rep(dim(data$y)[1],length(df_$K))
-save(df_, file = "../saves_for_figures/cmp_fig1.RData")
+save(df_, file = "../saves_for_figures/cmp_fig2.RData")

@@ -1,0 +1,41 @@
+#rm(list=ls()) 
+#setwd("~/Documents/GitHub/BNPconsistency/scripts_for_figures")
+## read sources
+require(e1071)
+require(mclust)
+require(MASS)
+require(bayesm)
+require(MCMCpack)
+require(mvtnorm)
+require(Runuran)
+require(flexclust)
+library(gridExtra)
+library(cowplot)
+library(ggplot2)
+library(latex2exp)
+require(tidyr)
+library(dplyr)
+
+#---------- B) Specification of the simulation and prior parameters -----------------------------------------------
+
+
+loadRData <- function(fileName){
+  #loads an RData file, and returns it
+  load(fileName)
+  get(ls()[ls() != "fileName"])
+}
+fig4 <- loadRData("../saves_for_figures/cmp_fig4.RData")
+fig4_ <- fig4%>%group_by(Process_type,N)%>%mutate(pkn =density/sum(density))
+
+p = ggplot(fig4_, aes(x=K, y = pkn, colour = fig4_$Process_type)) +
+  geom_line(aes(x=K, y = pkn))  +ylab('') + 
+  ggtitle(TeX(sprintf('Posterior distribution for the number of clusters for $\\alpha =%.3f$,$\\N =(%2.f,%2.f,%2.f) $ ',fig4_$alpha[1],fig4_$N[1],fig4_$N[(max(fig4_$K)+1)],fig4_$N[(2*max(fig4_$K)+1)])))+
+  theme_minimal() +scale_x_continuous(limits = c(1, max(fig4_$K)), expand = c(0, 0),breaks= c(1,seq(0,max(fig4_$K),length=5)))+
+  theme(plot.title = element_text(hjust = 0.5,size = 10), axis.text.x = element_text(size=10))+
+  scale_color_discrete(name = TeX(sprintf('$\\alpha$')) ,labels=unname(TeX(c(sprintf('$N$=%.3f',fig4_$N[1]),sprintf('$N$=%.3f',fig4_$N[(max(fig4_$K)+1)]),sprintf('$N$=%.3f',fig4_$N[(2*max(fig4_$K)+1)])))))
+p
+
+
+pdf(file="../saves_for_figures/Figure4.pdf")
+plot(p)
+dev.off()

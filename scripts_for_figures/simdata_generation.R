@@ -1,7 +1,7 @@
 ## read sources
-source("Random_SpMix.R")
-source("Estimation_SpMix.R")
-source("Identification_SpMix.R")
+source("Code_SP_Mix/Random_SpMix.R")
+source("Code_SP_Mix/Estimation_SpMix.R")
+source("Code_SP_Mix/Identification_SpMix.R")
 
 require(e1071)
 require(mclust)
