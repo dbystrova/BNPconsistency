@@ -36,6 +36,6 @@ p = ggplot(fig1_, aes(x=K, y = pkn, colour = fig1_$Process_type)) +
 p
                      
 
-pdf(file="../saves_for_figures/Figure1.pdf")
+pdf(file="../figures/Figure1.pdf")
 plot(p)
 dev.off()

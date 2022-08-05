@@ -32,7 +32,7 @@ p = ggplot(fig4_, aes(x=K, y = pkn, colour = fig4_$Process_type)) +
   ggtitle(TeX(sprintf('Posterior distribution for the number of clusters for $\\alpha =%.3f$,$\\N =(%2.f,%2.f,%2.f) $ ',fig4_$alpha[1],fig4_$N[1],fig4_$N[(max(fig4_$K)+1)],fig4_$N[(2*max(fig4_$K)+1)])))+
   theme_minimal() +scale_x_continuous(limits = c(1, max(fig4_$K)), expand = c(0, 0),breaks= c(1,seq(0,max(fig4_$K),length=5)))+
   theme(plot.title = element_text(hjust = 0.5,size = 10), axis.text.x = element_text(size=10))+
-  scale_color_discrete(name = TeX(sprintf('$\\alpha$')) ,labels=unname(TeX(c(sprintf('$N$=%.3f',fig4_$N[1]),sprintf('$N$=%.3f',fig4_$N[(max(fig4_$K)+1)]),sprintf('$N$=%.3f',fig4_$N[(2*max(fig4_$K)+1)])))))
+  scale_color_discrete(name = TeX(sprintf('$n$')) ,labels=unname(TeX(c(sprintf('$N$=%3.f',fig4_$N[1]),sprintf('$N$=%3.f',fig4_$N[(max(fig4_$K)+1)]),sprintf('$N$=%3.f',fig4_$N[(2*max(fig4_$K)+1)])))))
 p
 
 
