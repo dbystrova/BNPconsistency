@@ -24,7 +24,7 @@ loadRData <- function(fileName){
   load(fileName)
   get(ls()[ls() != "fileName"])
 }
-fig1 <- loadRData("../saves_for_figures/cmp_fig1.RData")
+fig1 <- loadRData("~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig1.RData")
 fig1_ <- fig1%>%group_by(Process_type,alpha)%>%mutate(pkn =density/sum(density))
 
 p = ggplot(fig1_, aes(x=K, y = pkn, colour = fig1_$Process_type)) +
@@ -36,6 +36,6 @@ p = ggplot(fig1_, aes(x=K, y = pkn, colour = fig1_$Process_type)) +
 p
                      
 
-pdf(file="../figures/Figure1.pdf")
+pdf(file="~/Documents/GitHub/BNPconsistency/figures/Figure1.pdf")
 plot(p)
 dev.off()

@@ -1,10 +1,10 @@
 #rm(list=ls()) 
 #setwd("~/Documents/GitHub/BNPconsistency/scripts_for_figures")
 ## read sources
-source("Code_SP_Mix/Random_SpMix.R")
-source("Code_SP_Mix/Estimation_SpMix.R")
-source("Code_SP_Mix/Identification_SpMix.R")
-source("Gibbs_sampling_function.R")
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Code_SP_Mix/Random_SpMix.R")
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Code_SP_Mix/Estimation_SpMix.R")
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Code_SP_Mix/Identification_SpMix.R")
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Gibbs_sampling_function.R")
 
 require(tidyr)
 require(e1071)
@@ -26,9 +26,9 @@ loadRData <- function(fileName){
   load(fileName)
   get(ls()[ls() != "fileName"])
 }
-data_500 <- loadRData("sim_data/GM_3_500.RData")
-data_1500 <- loadRData("sim_data/GM_3_1500.RData")
-data_5000 <- loadRData("sim_data/GM_3_5000.RData")
+data_500 <- loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_500.RData")
+data_1500 <- loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_1500.RData")
+data_5000 <- loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_5000.RData")
 
 ## number of mixture components
 K_nc <- 10
@@ -51,4 +51,4 @@ df_= data.frame(K= 1:K_nc,
 
 df_$alpha = c(rep(alpha_2,K_nc),rep(alpha_2,K_nc),rep(alpha_2,K_nc))  
 df_$N = c(rep(dim(data_500$y)[1],K_nc),rep(dim(data_1500$y)[1],K_nc),rep(dim(data_5000$y)[1],K_nc)) 
-save(df_, file = "../saves_for_figures/cmp_fig5.RData")
+save(df_, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig5.RData")

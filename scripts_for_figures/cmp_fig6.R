@@ -33,7 +33,7 @@ data_5000 <- loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/si
 ## number of mixture components
 K_nc <- 10
 ## number of iterations, M without burnin
-alpha_1 = 0.01
+alpha_1 = 0.05
 #alpha_2 = 0.1
 #alpha_3 = 0.9
 M_it <- 10000
@@ -51,4 +51,4 @@ df_= data.frame(K= 1:K_nc,
 
 df_$alpha = c(rep(alpha_1,K_nc),rep(alpha_1,K_nc),rep(alpha_1,K_nc))  
 df_$N = c(rep(dim(data_500$y)[1],K_nc),rep(dim(data_1500$y)[1],K_nc),rep(dim(data_5000$y)[1],K_nc)) 
-save(df_, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig4.RData")
+save(df_, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig6.RData")
