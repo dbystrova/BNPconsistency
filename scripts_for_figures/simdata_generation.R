@@ -50,22 +50,41 @@ N=10000
 date_10000 <- MultVar_RandomNormal(N=10000, eta, mu, sigma, z = rep(FALSE, N))
 save(date_10000, file = "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_10000.RData")
 
-date_5000 =date_10000 
+date_5000 =list()
+date_5000$eta = date_10000$eta 
+date_5000$mu = date_10000$mu 
+date_5000$sigma = date_10000$sigma 
+
 date_5000$y <- date_10000$y[sample(1:nrow(date_10000$y), 5000,replace=FALSE),]
 date_5000$z <-rep(FALSE, 5000)
 save(date_5000, file = "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_5000.RData")
 
+date_1000 =list()
+date_1000$eta = date_5000$eta 
+date_1000$mu = date_5000$mu 
+date_1000$sigma = date_5000$sigma 
 
-date_1500 =date_5000 
-date_1500$y <- date_5000$y[sample(1:nrow(date_5000$y), 1500,replace=FALSE),]
-date_1500$z <-rep(FALSE, 1500)
-save(date_1500, file = "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_1500.RData")
+date_1000$y <- date_5000$y[sample(1:nrow(date_5000$y), 1000,replace=FALSE),]
+date_1000$z <-rep(FALSE, 1000)
+save(date_1000, file = "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_1000.RData")
+
+date_100 =list()
+date_100$eta = date_1000$eta 
+date_100$mu = date_1000$mu 
+date_100$sigma = date_1000$sigma 
+
+date_100$y <- date_1000$y[sample(1:nrow(date_1000$y), 100,replace=FALSE),]
+date_100$z <-rep(FALSE, 100)
+save(date_100, file = "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_100.RData")
 
 
-date_500 =date_1500 
-date_500$y <- date_1500$y[sample(1:nrow(date_1500$y), 500,replace=FALSE),]
-date_500$z <-rep(FALSE, 500)
-save(date_500, file = "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_500.RData")
+date_10 =list()
+date_10$eta = date_500$eta 
+date_10$mu = date_500$mu 
+date_10$sigma = date_500$sigma 
 
+date_10$y <- date_500$y[sample(1:nrow(date_500$y), 10,replace=FALSE),]
+date_10$z <-rep(FALSE, 10)
+save(date_10, file = "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_10.RData")
 
 #overlap <- subset(date_1500$y,date_1500$y[,1] %in% intersect(date_1500$y[,1],date_10000$y[,1]))

@@ -34,17 +34,17 @@ data_10000 <- loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/s
 ## number of mixture components
 K_nc <- 10
 ## number of iterations, M without burnin
-alpha_1 = 0.01
-#alpha_2 = 0.1
+#alpha_1 = 0.01
+alpha_2 = 0.5
 #alpha_3 = 0.9
 M_it <- 5000
 burnin_ <- 2000
 K_nc <- 9
-pk_n_10 = MCMC_function(data_10, e0=alpha_1, K=K_nc, M=M_it, burnin=burnin_) 
+pk_n_10 = MCMC_function(data_10, e0=alpha_2, K=K_nc, M=M_it, burnin=burnin_) 
 K_nc <- 10
-pk_n_100 = MCMC_function(data_100, e0=alpha_1, K=K_nc, M=M_it, burnin=burnin_) 
-pk_n_1000 = MCMC_function(data_1000, e0=alpha_1, K=K_nc, M=M_it, burnin=burnin_) 
-pk_n_10000 = MCMC_function(data_10000, e0=alpha_1, K=K_nc, M=M_it, burnin=burnin_) 
+pk_n_100 = MCMC_function(data_100, e0=alpha_2, K=K_nc, M=M_it, burnin=burnin_) 
+pk_n_1000 = MCMC_function(data_1000, e0=alpha_2, K=K_nc, M=M_it, burnin=burnin_) 
+pk_n_10000 = MCMC_function(data_10000, e0=alpha_2, K=K_nc, M=M_it, burnin=burnin_) 
 
 
 df_= data.frame(K= 1:K_nc, 
@@ -52,19 +52,22 @@ df_= data.frame(K= 1:K_nc,
                 Pkn_2 = pk_n_100$p_k,
                 Pkn_3 = pk_n_1000$p_k,
                 Pkn_4 = pk_n_10000$p_k)%>% gather(Process_type, density, Pkn_1:Pkn_4)
-df_$alpha = c(rep(alpha_1,K_nc),rep(alpha_1,K_nc),rep(alpha_1,K_nc),rep(alpha_1,K_nc))  
+df_$alpha = c(rep(alpha_2,K_nc),rep(alpha_2,K_nc),rep(alpha_2,K_nc),rep(alpha_2,K_nc))  
 df_$N = c(rep(dim(data_10$y)[1],K_nc),rep(dim(data_100$y)[1],K_nc),rep(dim(data_1000$y)[1],K_nc),rep(dim(data_10000$y)[1],K_nc)) 
-save(df_, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig4.RData")
+save(df_, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig5.RData")
 
 df2_= data.frame(Pkn_1 = pk_n_10$p_k_all,
-                Pkn_2 = pk_n_100$p_k_all,
-                Pkn_3 = pk_n_1000$p_k_all,
-                Pkn_4 = pk_n_10000$p_k_all)%>% gather(Process_type, density, Pkn_1:Pkn_4)
+                 Pkn_2 = pk_n_100$p_k_all,
+                 Pkn_3 = pk_n_1000$p_k_all,
+                 Pkn_4 = pk_n_10000$p_k_all)%>% gather(Process_type, density, Pkn_1:Pkn_4)
 
 
 df2_$Rh_mu <- c(rep(pk_n_10$m_rh[4],length(pk_n_10$p_k_all)),rep(pk_n_100$m_rh[4],length(pk_n_100$p_k_all)),rep(pk_n_1000$m_rh[4],length(pk_n_1000$p_k_all)),rep(pk_n_10000$m_rh[4],length(pk_n_10000$p_k_all)))  
 df2_$Rh_s <- c(rep(pk_n_10$s_rh[4],length(pk_n_10$p_k_all)),rep(pk_n_100$s_rh[4],length(pk_n_100$p_k_all)),rep(pk_n_1000$s_rh[4],length(pk_n_1000$p_k_all)),rep(pk_n_10000$s_rh[4],length(pk_n_10000$p_k_all)))  
 df2_$N = c(rep(dim(data_10$y)[1],K_nc),rep(dim(data_100$y)[1],K_nc),rep(dim(data_1000$y)[1],K_nc),rep(dim(data_10000$y)[1],K_nc)) 
 
-save(df2_, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig4_2.RData")
+save(df2_, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig5_2.RData")
+
+
+
 

@@ -36,7 +36,7 @@ K_nc <- 10
 alpha_1 = 0.5
 #alpha_2 = 0.1
 #alpha_3 = 0.9
-M_it <- 10000
+M_it <- 5000
 burnin_ <- 2000
 
 pk_n_500 = MCMC_function(data_500, e0=alpha_1, K=K_nc, M=M_it, burnin=burnin_) 
