@@ -17,6 +17,32 @@ library(cowplot)
 library(ggplot2)
 #---------- B) Specification of the simulation and prior parameters -----------------------------------------------
 
+loadRData <- function(fileName){
+  #loads an RData file, and returns it
+  load(fileName)
+  get(ls()[ls() != "fileName"])
+}
+
+compute_log_lik<- function(K, y, M, burnin, Eta, Mu, Sigma){
+  n_data = dim(y)[1]
+  plk = 0
+  lik = matrix(0,n_data,K )
+  log_lik = c()
+  for (i in 1:(M-burnin)){
+    for (j in 1:K){
+      lik[,j] = Eta[burnin+i,j]*dmvnorm(y,Mu[burnin+i,,j], Sigma[burnin+i,,,j])
+      #k_ = S_alt_matrix[j,i]
+      #p_l <- sum(sapply(1:n_data, function(i) Eta[j,S_alt_matrix[j,i]] * dmvnorm(y[i,],Mu[j,,S_alt_matrix[j,i]], Sigma[j,,,S_alt_matrix[j,i]])))
+      #k_ = S_alt_matrix[j,i]
+      #plk = plk + Eta[j,k_] * dmvnorm(y[i,], Mu[j,,k_], Sigma[j,,,k_])
+    }
+    log_lik[i] = sum(log(apply(lik,1,sum)))
+  }
+  return(log_lik)
+  }
+
+
+
 MCMC_function <- function(data, e0=0.01, K, M, burnin) {
   y <- as.matrix(data$y)
   Mmax <- M + burnin
@@ -69,7 +95,7 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin) {
   
   
   #---------- C) Gibbs sampling from the posterior -----------------------------------------------
-  print(B_0)
+  #print(B_0)
   ################ call MCMC procedure
   estGibbs <- MultVar_NormMixt_Gibbs_IndPriorNormalgamma(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
                                                          g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = FALSE, lambda = FALSE)
@@ -103,6 +129,12 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin) {
   Nk_matrix_alt <- estGibbs$Nk_matrix_alt
   Nk_matrix_alt2 <- estGibbs_2$Nk_matrix_alt
   nonnormpost_mode_list <- estGibbs$nonnormpost_mode_list
+
+  ll1<- compute_log_lik(K, y, M, burnin, Eta, Mu, Sigma)
+  ll2<- compute_log_lik(K, y, M, burnin, estGibbs_2$Eta,estGibbs_2$Mu,  estGibbs_2$Sigma)
+  log_lik_combines <- mcmc.list(mcmc(ll1),mcmc(ll2))
+  Rhat_ll<- gelman.diag(log_lik_combines)$psrf[1]
+  
   
   ## convergence diagnostic
   Sigma_es = apply(Sigma, c(2,3,4),effectiveSize)
@@ -117,8 +149,8 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin) {
   
   #---------- E) Identification of the mixture model -----------------------------------------------
   ##### estimating the number of nonempty components
-  K0_vector <- rowSums(Nk_matrix_alt != 0)  #vector with number of non-empty groups of each iteration
-  K0_vector2 <- rowSums(Nk_matrix_alt2 != 0)  #vector with number of non-empty groups of each iteration
+  K0_vector <- rowSums(Nk_matrix_alt[(burnin+1):M,] != 0)  #vector with number of non-empty groups of each iteration
+  K0_vector2 <- rowSums(Nk_matrix_alt2[(burnin+1):M,] != 0)  #vector with number of non-empty groups of each iteration
   p_K0 <- tabulate(c(K0_vector,K0_vector2), K)
   p_K0
   #par(mfrow = c(1, 1))
@@ -128,5 +160,52 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin) {
   M0 <- sum(K0_vector == K0)
   M0  #M0 draws have exactly K0 non-empty groups
   
-return(list(p_k = p_K0,m_rh = Mu_Rh, s_rh = Sigma_Rh, p_k_all = c(K0_vector,K0_vector2) ))
+return(list(p_k = p_K0,m_rh = Mu_Rh, s_rh = Sigma_Rh,ll_rhat= Rhat_ll,p_k_all = c(K0_vector,K0_vector2) ))
+}
+
+comparison_n<- function(ds_list, alpha,K_, M_it, nburn){
+  pk<- list()
+  N<- c()
+  R_h <- c()
+  for (i in 1:length(ds_list)){
+    data =  loadRData(ds_list[i])
+    pk[[i]] <- MCMC_function(data, e0=alpha, K=K_, M=M_it, burnin=nburn)
+    N[i]<- dim(data$y)[1]
+  }
+  df_ = tibble(K= 1:K_)
+  df2_ = tibble(K= 1:K_)
+  df3_ = tibble(K= 1:K_)
+  for (j in 1:length(ds_list)){
+    name_ <- paste("Pkn_", j, sep = "")
+    name2_ <- paste("Rh_", j, sep = "")
+    name3_ <- paste("N_", j, sep = "")
+    df_[,name_]<- pk[[j]]$p_k
+    df2_[,name2_]<- rep(pk[[j]]$ll_rhat,length(pk[[j]]$p_k))
+    df3_[,name3_]<- rep(N[j],length(pk[[j]]$p_k))
+  }
+  df = df_%>% gather(Process_type, density,  paste("Pkn_", 1, sep = ""):paste("Pkn_", length(ds_list), sep = ""))
+  df2 = df2_%>% gather(Rh, Rh_val,  paste("Rh_", 1, sep = ""):paste("Rh_", length(ds_list), sep = ""))
+  df3 = df3_%>% gather(N_, N_val,  paste("N_", 1, sep = ""):paste("N_", length(ds_list), sep = ""))
+  df$alpha = c(rep(alpha,dim(df_)[1]*length(ds_list))) 
+  df$Rh = df2$Rh_val
+  df$N =df3$N_val
+  
+  df_l_ = tibble(K= 1:((M_it -nburn)*2))
+  df2_l_ = tibble(K= 1:((M_it - nburn)*2))
+  df3_l_ = tibble(K= 1:((M_it - nburn)*2))
+  for (j in 1:length(ds_list)){
+    name_ <- paste("P_", j, sep = "")
+    name2_ <- paste("Rh_", j, sep = "")
+    name3_ <- paste("N_", j, sep = "")
+    df_l_[,name_]<- pk[[j]]$p_k_all
+    df2_l_[,name2_]<- rep(pk[[j]]$ll_rhat,length(pk[[j]]$p_k_all))
+    df3_l_[,name3_]<- rep(N[j],length(pk[[j]]$p_k_all))
+  }
+  df_l = df_l_%>% gather(Process_type, density,  paste("P_", 1, sep = ""):paste("P_", length(ds_list), sep = ""))
+  df_l2 = df2_l_%>% gather(Rh, Rh_val,  paste("Rh_", 1, sep = ""):paste("Rh_", length(ds_list), sep = ""))
+  df_l3 = df3_l_%>% gather(N_, N_val,  paste("N_", 1, sep = ""):paste("N_", length(ds_list), sep = ""))
+  df_l$alpha = c(rep(alpha,(M_it -nburn)*2*length(ds_list))) 
+  df_l$Rh = df_l2$Rh_val
+  df_l$N =df_l3$N_val
+  return(list(line = df, hist =df_l))
 }

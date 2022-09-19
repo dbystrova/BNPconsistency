@@ -11,10 +11,10 @@ save_for_figures/cmp_fig4.RData: scripts_for_figures/cmp_fig4.R
 save_for_figures/cmp_fig5.RData: scripts_for_figures/cmp_fig5.R
 	Rscript scripts_for_figures/cmp_fig5.R	
 save_for_figures/cmp_fig6.RData: scripts_for_figures/cmp_fig6.R
-	Rscript scripts_for_figures/cmp_fig6.R		
+	Rscript scripts_for_figures/cmp_fig6.R
 save_for_figures/cmp_fig7.RData: scripts_for_figures/cmp_fig7.R
 	Rscript scripts_for_figures/cmp_fig7.R
-save_for_figures/cmp_fig7.RData: scripts_for_figures/cmp_fig8.R
+save_for_figures/cmp_fig8.RData: scripts_for_figures/cmp_fig8.R
 	Rscript scripts_for_figures/cmp_fig8.R		
 figures/Figure1.pdf: scripts_for_figures/plt_fig1.R saves_for_figures/cmp_fig1.RData 
 	Rscript scripts_for_figures/plt_fig1.R
@@ -48,4 +48,9 @@ cmp_files: save_for_figures/cmp_fig1.RData \
 		save_for_figures/cmp_fig6.RData \
 		save_for_figures/cmp_fig7.RData \
 		save_for_figures/cmp_fig8.RData
+cmp_files2:     save_for_figures/cmp_fig6.RData \
+		save_for_figures/cmp_fig7.RData \
+		save_for_figures/cmp_fig8.RData
+
+
 	

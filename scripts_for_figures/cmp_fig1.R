@@ -49,4 +49,6 @@ df_= data.frame(K= 1:K_nc,
 
 df_$alpha = c(rep(alpha_1,K_nc),rep(alpha_2,K_nc),rep(alpha_3,K_nc))  
 df_$N = rep(dim(data$y)[1],length(df_$K))
+df_$Rh =  c(rep(pk_n_001$ll_rhat,length( pk_n_001$p_k)), rep(pk_n_01$ll_rhat,length( pk_n_001$p_k)),rep(pk_n_09$ll_rhat,length( pk_n_001$p_k)))
+
 save(df_, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig1.RData")
