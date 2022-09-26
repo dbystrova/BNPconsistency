@@ -26,7 +26,7 @@ loadRData <- function(fileName){
   load(fileName)
   get(ls()[ls() != "fileName"])
 }
-data <- loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_10000.RData")
+data <- loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData")
 
 ## number of mixture components
 K_nc <- 10

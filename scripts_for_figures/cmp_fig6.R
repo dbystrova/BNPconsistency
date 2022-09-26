@@ -17,8 +17,9 @@ library(cowplot)
 library(ggplot2)
 #---------- B) Specification of the simulation and prior parameters -----------------------------------------------
 
-ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_50.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_100.RData",
-            "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_1000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_10000.RData")
+
+ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_200.RData",
+            "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData")
 
 
 df_6 <-comparison_n(ds_list, alpha = 0.9,K_ = 10, M_it= 10000 , nburn = 2000)

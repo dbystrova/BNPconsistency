@@ -2,7 +2,8 @@
 ##Generating observations from a multivariate normal mixture distribution:
 ##########################################################################
 
-MultVar_RandomNormal <- function(N, eta, mu, sigma, z) {
+MultVar_RandomNormal <- function(N, eta, mu, sigma, z,seed_ =1000) {
+  set.seed(seed_)
   K <- length(mu[1, ])
   r <- length(mu[, 1])
   y <- matrix(0, N, r)
