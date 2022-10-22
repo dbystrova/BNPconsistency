@@ -29,6 +29,7 @@ loadRData <- function(fileName){
 }
 fig6 <- loadRData("~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig6.RData")
 fig6_ <- fig6$line%>%group_by(Process_type,N)%>%mutate(pkn =density/sum(density))
+K_ = max(fig6_$K)
 
 p = ggplot(fig6_, aes(x=K, colour = fig6_$Process_type)) +
   geom_line(aes(x=K, y = pkn))  +  ylab('')+
@@ -50,10 +51,10 @@ julia_library("GibbsTypePriors")
 
 
 df_prior = tibble(K= 1:10, 
-                  Pkn_1 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,20, 10, 0.9)"),3),
-                  Pkn_2= round(julia_eval("Pkn_Dirichlet_mult.(1:10,200, 10, 0.9)"),3), 
-                  Pkn_3 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,2000, 10, 0.9)"),3),
-                  Pkn_4 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,20000, 10, 0.9)"),3))%>% gather(Process_type, pkn,Pkn_1:Pkn_4)
+                  Pkn_1 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,20, 10, 9.0)"),3),
+                  Pkn_2= round(julia_eval("Pkn_Dirichlet_mult.(1:10,200, 10, 9.0)"),3), 
+                  Pkn_3 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,2000, 10, 9.0)"),3),
+                  Pkn_4 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,20000, 10, 9.0)"),3))%>% gather(Process_type, pkn,Pkn_1:Pkn_4)
 
 df_prior$Type =rep("Prior", dim(df_prior)[1])
 fig6_$Type= rep("Posterior", dim(fig6_)[1])
@@ -65,7 +66,7 @@ names(pkn.labs) <- c(paste0("N = ", fig6_$N[1]),paste0("N = ", fig6_$N[max(fig6_
 pkn_names <- as_labeller(
   c(`Pkn_1` = paste0("N = ", fig6_$N[1]), `Pkn_2` = paste0("N = ", fig6_$N[max(fig6_$K)+1]),`Pkn_3` = paste0("N = ", fig6_$N[(2*max(fig6_$K)+1)]),`Pkn_4` = paste0("N = ", fig6_$N[(3*max(fig6_$K)+1)])))
 
-p <- ggplot(df_merged, aes(K,pkn,color =Process_type))+geom_bar(aes(linetype=Type),size = 0.7, stat="identity",alpha =1, position = "identity", fill= "white")+
+p <- ggplot(df_merged, aes(K,pkn,color =Process_type))+geom_bar(aes(linetype=Type),size = 0.7, stat="identity",alpha =0.0, position = "identity", fill= "white")+
   geom_vline(xintercept=3,  linetype="dashed")+ylab("Density")+xlab(TeX('$K$'))+
   ggtitle(TeX(sprintf('Posterior distribution for the number of clusters for $\\alpha =%.3f$,$\\N =(%2.f,%2.f,%2.f, %2.f) $ ',fig6_$alpha[1],fig6_$N[1],fig6_$N[(max(fig6_$K)+1)],fig6_$N[(2*max(fig6_$K)+1)],fig6_$N[(3*max(fig6_$K)+1)])))+
   theme_minimal()+ scale_color_viridis(discrete= "TRUE", begin = 0, end = 0.9,option = "D", name = TeX(sprintf('$n$')) ,labels=unname(TeX(c(sprintf('$N$=%3.f',fig6_$N[1]),sprintf('$N$=%3.f',fig6_$N[(max(fig6_$K)+1)]),sprintf('$N$=%3.f',fig6_$N[(2*max(fig6_$K)+1)]),sprintf('$N$=%3.f',fig6_$N[(3*max(fig6_$K)+1)])))))+
@@ -77,6 +78,10 @@ pdf(file="~/Documents/GitHub/BNPconsistency/figures/Figure6_2.pdf")
 plot(p)
 dev.off()
 
+
+E_k<- df_merged %>% group_by(Process_type,Type) %>% summarize(sum(pkn *c(1:K_)))
+write.table(E_k, file = "Prior_Posterior_exp_fig6.csv", sep = ",", col.names = NA,
+            qmethod = "double")
 
 
 
