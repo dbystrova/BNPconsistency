@@ -47,12 +47,13 @@ dev.off()
 julia <- julia_setup()
 julia_library("GibbsTypePriors")
 
+#alpha_list<- c(1,0.5, 0.33, 0.25)
 
 df_prior = tibble(K= 1:10, 
-                  Pkn_1 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,20, 10, 3.2)"),3),
-                  Pkn_2= round(julia_eval("Pkn_Dirichlet_mult.(1:10,200, 10, 1.24)"),3), 
-                  Pkn_3 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,2000, 10, 0.81)"),3),
-                  Pkn_4 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,20000, 10, 0.6)"),3))%>% gather(Process_type, pkn,Pkn_1:Pkn_4)
+                  Pkn_1 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,20, 10, 1.0)"),3),
+                  Pkn_2= round(julia_eval("Pkn_Dirichlet_mult.(1:10,200, 10, 0.5)"),3), 
+                  Pkn_3 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,2000, 10, 0.33)"),3),
+                  Pkn_4 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,20000, 10, 0.25)"),3))%>% gather(Process_type, pkn,Pkn_1:Pkn_4)
 
 df_prior$Type =rep("Prior", dim(df_prior)[1])
 fig10_$Type= rep("Posterior", dim(fig10_)[1])
@@ -78,7 +79,7 @@ plot(p)
 dev.off()
 
 E_k<- df_merged %>% group_by(Process_type,Type) %>% summarize(sum(pkn *c(1:K_)))
-write.table(E_k, file = "Prior_Posterior_exp_fig10.csv", sep = ",", col.names = NA,
+write.table(E_k, file = "~/Documents/GitHub/BNPconsistency/figures/Prior_Posterior_exp_fig10.csv", sep = ",", col.names = NA,
             qmethod = "double")
 
 

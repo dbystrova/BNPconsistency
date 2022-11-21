@@ -60,9 +60,9 @@ fig7_$Type= rep("Posterior", dim(fig7_)[1])
 df_merged = rbind(df_prior,fig7_[, c("K","Process_type", "pkn", "Type")] )
 
 pkn.labs<- c("Pkn_1","Pkn_2","Pkn_3","Pkn_4")
-names(pkn.labs) <- c(paste0("N = ", fig7_$N[1]),paste0("N = ", fig7_$N[max(fig7_$K)+1]),paste0("N = ", fig7_$N[(2*max(fig7_$K)+1)]),paste0("N = ", fig7_$N[(3*max(fig7_$K)+1)]))
+names(pkn.labs) <- c(paste0("n = ", fig7_$N[1]),paste0("n = ", fig7_$N[max(fig7_$K)+1]),paste0("n = ", fig7_$N[(2*max(fig7_$K)+1)]),paste0("n = ", fig7_$N[(3*max(fig7_$K)+1)]))
 pkn_names <- as_labeller(
-  c(`Pkn_1` = paste0("N = ", fig7_$N[1]), `Pkn_2` = paste0("N = ", fig7_$N[max(fig7_$K)+1]),`Pkn_3` = paste0("N = ", fig7_$N[(2*max(fig7_$K)+1)]),`Pkn_4` = paste0("N = ", fig7_$N[(3*max(fig7_$K)+1)])))
+  c(`Pkn_1` = paste0("n = ", fig7_$N[1]), `Pkn_2` = paste0("n = ", fig7_$N[max(fig7_$K)+1]),`Pkn_3` = paste0("n = ", fig7_$N[(2*max(fig7_$K)+1)]),`Pkn_4` = paste0("n = ", fig7_$N[(3*max(fig7_$K)+1)])))
 
 p <- ggplot(df_merged, aes(K,pkn,color =Process_type))+geom_bar(aes(linetype=Type),size = 0.7, stat="identity",alpha =0.0, position = "identity", fill= "white")+
   geom_vline(xintercept=3,  linetype="dashed")+ylab("Density")+xlab(TeX('$K$'))+
@@ -77,8 +77,23 @@ pdf(file="~/Documents/GitHub/BNPconsistency/figures/Figure7_2.pdf")
 plot(p)
 dev.off()
 
+
+p <- ggplot(df_merged, aes(K,pkn,color =Process_type))+geom_bar(aes(linetype=Type),size = 0.7, stat="identity",alpha =0.0, position = "identity", fill= "white")+
+  geom_vline(xintercept=3,  linetype="dashed")+ylab("Density")+xlab(TeX('$K_n$'))+
+  theme_minimal()+ scale_color_viridis(discrete= "TRUE", begin = 0, end = 0.9,option = "D", name = TeX(sprintf('$n$')) ,labels=unname(TeX(c(sprintf('$n$=%3.f',fig7_$N[1]),sprintf('$n$=%3.f',fig7_$N[(max(fig7_$K)+1)]),sprintf('$n$=%3.f',fig7_$N[(2*max(fig7_$K)+1)]),sprintf('$n$=%3.f',fig7_$N[(3*max(fig7_$K)+1)])))))+
+  scale_x_continuous(breaks = c(1,3,6,9), limits = c(0,11))+
+  scale_linetype_manual(name = "Distribution",values = c(2, 1),breaks = c("Prior","Posterior"),guide = guide_legend(override.aes = list(linetype = c(2, 1),color = "black") ) )+
+  facet_wrap(~Process_type,labeller = pkn_names)
+p
+
+pdf(file="~/Documents/GitHub/BNPconsistency/figures/Figure7_2_.pdf")
+plot(p)
+dev.off()
+
+
+
 E_k<- df_merged %>% group_by(Process_type,Type) %>% summarize(sum(pkn *c(1:K_)))
-write.table(E_k, file = "Prior_Posterior_exp_fig7.csv", sep = ",", col.names = NA,
+write.table(E_k, file = "~/Documents/GitHub/BNPconsistency/figures/Prior_Posterior_exp_fig7.csv", sep = ",", col.names = NA,
             qmethod = "double")
 
 

@@ -7,6 +7,7 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
                                                        g0, G0, b0, B0k, nu, lam_0, M, burnin, c_proposal, priorOnE0, lambda,seed = 1) {
   
   set.seed(seed)
+  print(seed)
   K <- ncol(mu_0)  #number of components 
   N <- nrow(y)  #number of observations
   r <- ncol(y)  #number of dimensions

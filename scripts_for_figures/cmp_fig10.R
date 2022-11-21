@@ -30,7 +30,7 @@ comparison_n_2<- function(ds_list,K_, M_it, nburn, alpha_l){
   R_h <- c()
   for (i in 1:length(ds_list)){
     data =  loadRData(ds_list[i])
-    pk[[i]] <- MCMC_function(data, e0=alpha_l[i]/K_, K=K_, M=M_it, burnin=nburn, seed = 100)
+    pk[[i]] <- MCMC_function(data, e0=alpha_l[i]/K_, K=K_, M=M_it, burnin=nburn, seed = 1000)
     N[i]<- dim(data$y)[1]
   }
   df_ = tibble(K= 1:K_)

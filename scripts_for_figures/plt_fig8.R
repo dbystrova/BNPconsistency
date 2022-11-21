@@ -79,7 +79,7 @@ dev.off()
 
 
 E_k<- df_merged %>% group_by(Process_type,Type) %>% summarize(sum(pkn *c(1:K_)))
-write.table(E_k, file = "Prior_Posterior_exp_fig8.csv", sep = ",", col.names = NA,
+write.table(E_k, file = "~/Documents/GitHub/BNPconsistency/figures/Prior_Posterior_exp_fig8.csv", sep = ",", col.names = NA,
             qmethod = "double")
 
 

@@ -1,4 +1,3 @@
-
 ## read sources
 source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Code_SP_Mix/Random_SpMix.R")
 source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Code_SP_Mix/Estimation_SpMix.R")
@@ -43,7 +42,8 @@ compute_log_lik<- function(K, y, M, burnin, Eta, Mu, Sigma){
 
 
 
-MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1234) {
+MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000) {
+  print(seed_)
   y <- as.matrix(data$y)
   Mmax <- M + burnin
   
@@ -76,6 +76,7 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1234) {
     sigma_0[, , k] <- C0
   }
   C0_0 <- C0
+  
   
   ## initial classification
   groups <- K
@@ -126,7 +127,7 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1234) {
   B <- estGibbs$B
   e0_vector <- estGibbs$e0_vector
   acc_rate <- estGibbs$acc_rate
-  Nk_matrix_alt <- estGibbs$Nk_matrix_alt
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Nk_matrix_alt <- estGibbs$Nk_matrix_alt
   Nk_matrix_alt2 <- estGibbs_2$Nk_matrix_alt
   nonnormpost_mode_list <- estGibbs$nonnormpost_mode_list
 
@@ -160,32 +161,46 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1234) {
   M0 <- sum(K0_vector == K0)
   M0  #M0 draws have exactly K0 non-empty groups
   
-return(list(p_k = p_K0,m_rh = Mu_Rh, s_rh = Sigma_Rh,ll_rhat= Rhat_ll,p_k_all = c(K0_vector,K0_vector2) ))
+return(list(p_k = p_K0,m_rh = Mu_Rh, s_rh = Sigma_Rh,ll_rhat= Rhat_ll,p_k_all = c(K0_vector,K0_vector2), Eta = Eta ))
 }
 
 comparison_n<- function(ds_list, alpha,K_, M_it, nburn){
   pk<- list()
   N<- c()
   R_h <- c()
+  W <- list()
   for (i in 1:length(ds_list)){
     data =  loadRData(ds_list[i])
     pk[[i]] <- MCMC_function(data, e0=alpha, K=K_, M=M_it, burnin=nburn)
     N[i]<- dim(data$y)[1]
-  }
+    #Eta_ <- apply(pk[[1]]$Eta , 2, function(x) c(sort(x, decreasing = TRUE)))
+    Eta_<-matrix(NA, nrow =dim(pk[[i]]$Eta)[1],ncol =  dim(pk[[i]]$Eta)[2] )
+    for (j in 1:dim(pk[[i]]$Eta)[1]){ Eta_[j,] <- sort(pk[[i]]$Eta[j,],decreasing = TRUE)}
+    W[[i]] <- Eta_
+    }
   df_ = tibble(K= 1:K_)
   df2_ = tibble(K= 1:K_)
   df3_ = tibble(K= 1:K_)
+  df4_ = tibble(K= 1:K_)
   for (j in 1:length(ds_list)){
     name_ <- paste("Pkn_", j, sep = "")
     name2_ <- paste("Rh_", j, sep = "")
     name3_ <- paste("N_", j, sep = "")
+    name4_ <- paste("W_", j, sep = "")
     df_[,name_]<- pk[[j]]$p_k
     df2_[,name2_]<- rep(pk[[j]]$ll_rhat,length(pk[[j]]$p_k))
     df3_[,name3_]<- rep(N[j],length(pk[[j]]$p_k))
+    df4_[,name4_]<- rep(N[j],length(pk[[j]]$p_k))
   }
   df = df_%>% gather(Process_type, density,  paste("Pkn_", 1, sep = ""):paste("Pkn_", length(ds_list), sep = ""))
   df2 = df2_%>% gather(Rh, Rh_val,  paste("Rh_", 1, sep = ""):paste("Rh_", length(ds_list), sep = ""))
   df3 = df3_%>% gather(N_, N_val,  paste("N_", 1, sep = ""):paste("N_", length(ds_list), sep = ""))
+  df4 = df4_%>% gather(W_, W_val,  paste("W_", 1, sep = ""):paste("W_", length(ds_list), sep = ""))
+  W_df <- do.call(cbind, W)
+  df4_post <- cbind(df4,t(W_df))
+  
+  df4_post_ <- gather(df4_post, key = "it",value="weights", (3+nburn):(3 +M_it))
+  
   df$alpha = c(rep(alpha,dim(df_)[1]*length(ds_list))) 
   df$Rh = df2$Rh_val
   df$N =df3$N_val
@@ -207,5 +222,94 @@ comparison_n<- function(ds_list, alpha,K_, M_it, nburn){
   df_l$alpha = c(rep(alpha,(M_it -nburn)*2*length(ds_list))) 
   df_l$Rh = df_l2$Rh_val
   df_l$N =df_l3$N_val
-  return(list(line = df, hist =df_l))
+  return(list(line = df, hist =df_l, weights = df4_post_))
 }
+
+
+
+MTM<- function(G, w_n, c ){
+  p.k = G$p
+  theta.k= G$theta
+  
+  ## stage 1
+  new_theta = sample(theta.k, length(theta.k), replace=FALSE, prob = p.k)
+  tau <- vector(mode="numeric", length=length(theta.k))
+  for (i in 1:length(theta.k)){
+    tau_k = which(new_theta ==theta.k[i] )
+    tau[i ]= tau_k
+  }
+  print(tau)
+  p_new = vector(mode="numeric", length=length(theta.k))
+  p_new= p.k
+  t = length(tau)
+  i = 1 
+  j = 1
+  while (i<t){
+    while (j<t){
+      if(tau[j]< tau[i]){
+        p1  = (as.numeric(unlist(strsplit(theta.k[tau[j]], split=':', fixed=TRUE))[1]) -  as.numeric(unlist(strsplit(theta.k[tau[i]], split=':', fixed=TRUE))[1]))^2
+        p2  = (as.numeric(unlist(strsplit(theta.k[tau[j]], split=':', fixed=TRUE))[2]) -  as.numeric(unlist(strsplit(theta.k[tau[i]], split=':', fixed=TRUE))[2]))^2
+        l2norm = sqrt(p1+p2)
+        if(l2norm <= w_n){
+          p_new[tau[i]] =p.k[tau[j]] + p.k[tau[i]]
+          p_new = p_new[- tau[j]]
+          tau = tau[tau!=tau[j]]
+          t = t-1
+          print(c(i,j))
+        }
+      }
+      j = j + 1
+    }
+    i = i +1
+  }
+}
+
+
+p_new = vector(mode="numeric", length=length(nj_k))
+p_new= p.k
+t = length(tau)
+i = 1 
+j = 1
+while (i<t){
+  while (j<t){
+    if(tau[j]< tau[i]){
+      l2norm = sqrt((theta_k[tau[j]] -  theta_k[tau[i]])^2 +(sigma_k[tau[j]] -  sigma_k[tau[i]])^2)
+      if(l2norm <= w_n){
+        p_new[tau[i]] =p.k[tau[j]] + p.k[tau[i]]
+        p_new = p_new[- tau[j]]
+        tau = tau[tau!=tau[j]]
+        t = t-1
+        print(c(i,j))
+      }
+    }
+    j = j + 1
+  }
+  i = i +1
+}
+
+#stage 2
+dat<- data.frame(p = p_new, th =theta_k[tau], sig=sigma_k[tau]  )
+dat[order(dat$p.Freq, decreasing = TRUE),]
+c = 0.5
+A = which(dat$p.Freq > (c*w_n)^2)
+N =  which(dat$p.Freq <= (c*w_n)^2)
+
+t = length(N)
+i=1
+j=1
+
+while ( i < t){
+  while ( j < t){
+    if (A[j] < A[i]){
+      lnorm =(dat$th[A[i]]-dat$th[A[j]])^2 +(dat$sig[A[i]]-dat$sig[A[j]])^2
+      if (dat$p.Freq[A[i]]*lnorm <= (c*w_n)^2){
+        N= c(N, A[i])
+        A=A[-i]
+        t = t-1
+      }
+    }
+  } 
+  return ()
+}
+
+
