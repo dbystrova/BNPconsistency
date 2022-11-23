@@ -74,7 +74,6 @@ comparison_n_2<- function(ds_list,K_, M_it, nburn, alpha_l){
   df_l2 = df2_l_%>% gather(Rh, Rh_val,  paste("Rh_", 1, sep = ""):paste("Rh_", length(ds_list), sep = ""))
   df_l3 = df3_l_%>% gather(N_, N_val,  paste("N_", 1, sep = ""):paste("N_", length(ds_list), sep = ""))
   df_l4 = df4_l_%>% gather(Alpha_, Alpha_val,  paste("Alpha_", 1, sep = ""):paste("Alpha_", length(ds_list), sep = ""))
- # df_l$alpha = c(rep(alpha,(M_it -nburn)*2*length(ds_list))) 
   df_l$Rh = df_l2$Rh_val
   df_l$N =df_l3$N_val
   df_l$Al =df_l4$Alpha_val

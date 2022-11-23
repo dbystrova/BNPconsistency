@@ -71,10 +71,10 @@ cmp_files: save_for_figures/cmp_fig4.RData \
 		   save_for_figures/cmp_fig5.RData \
 		   save_for_figures/cmp_fig6.RData \
 		   save_for_figures/cmp_fig7.RData \
-		   save_for_figures/cmp_fig8.RData \
-		   save_for_figures/cmp_fig9.RData \
-		   save_for_figures/cmp_fig10.RData
-cmp_files_2: save_for_figures/cmp_fig11.RData \
+		   save_for_figures/cmp_fig8.RData
+cmp_files_2: save_for_figures/cmp_fig9.RData \
+		     save_for_figures/cmp_fig10.RData \
+		     save_for_figures/cmp_fig11.RData \
 		     save_for_figures/cmp_fig12.RData
 
 

@@ -114,23 +114,12 @@ dev.off()
 
 weights_fig <-fig4$weights 
 
-
-weights_fig %>%
-  ggplot( aes(x=K, y=weights, fill=W_val)) +
-  geom_boxplot() +
-  xlab("")
-
-weights_fig %>%ggplot( aes(x=K, y=weights, fill=K)) +
-  geom_boxplot() +
-  scale_fill_viridis(discrete = TRUE, alpha=0.6) +
-  theme(
-    legend.position="none",
-    plot.title = element_text(size=11)
-  ) +
-  ggtitle("A boxplot with jitter") +
-  xlab("")
-
-
 p <- ggplot(weights_fig, aes(x=K, y=weights, group =K )) + 
-  geom_boxplot() + facet_wrap(~W_val)
-p
+  geom_boxplot() +
+  ggtitle(TeX(sprintf('Posterior distribution of the component weights $\\alpha =%.3f$,$\\N =(%2.f,%2.f,%2.f, %2.f) $ ',fig4_$alpha[1],fig4_$N[1],fig4_$N[(max(fig4_$K)+1)],fig4_$N[(2*max(fig4_$K)+1)],fig4_$N[(3*max(fig4_$K)+1)])))+
+  theme_minimal()+  facet_wrap(~W_val)
+
+pdf(file="~/Documents/GitHub/BNPconsistency/figures/Figure4_4.pdf")
+plot(p)
+dev.off()
+

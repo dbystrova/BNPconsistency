@@ -27,7 +27,7 @@ loadRData <- function(fileName){
   load(fileName)
   get(ls()[ls() != "fileName"])
 }
-fig6 <- loadRData("~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig6.RData")
+fig6 <- loadRData("~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig6_test.RData")
 fig6_ <- fig6$line%>%group_by(Process_type,N)%>%mutate(pkn =density/sum(density))
 K_ = max(fig6_$K)
 
@@ -110,3 +110,15 @@ pdf(file="~/Documents/GitHub/BNPconsistency/figures/Figure6_3.pdf")
 plot(p)
 dev.off()
 
+
+
+weights_fig <-fig6$weights 
+
+p <- ggplot(weights_fig, aes(x=K, y=weights, group =K )) + 
+  geom_boxplot() + facet_wrap(~W_val)+
+  ggtitle(TeX(sprintf('Posterior distribution of the component weights $\\alpha =%.3f$,$\\N =(%2.f,%2.f,%2.f, %2.f) $ ',fig6_$alpha[1],fig6_$N[1],fig6_$N[(max(fig6_$K)+1)],fig6_$N[(2*max(fig6_$K)+1)],fig6_$N[(3*max(fig6_$K)+1)])))+
+  theme_minimal()
+
+pdf(file="~/Documents/GitHub/BNPconsistency/figures/Figure4_4.pdf")
+plot(p)
+dev.off()

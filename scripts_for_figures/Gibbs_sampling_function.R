@@ -14,6 +14,7 @@ require(flexclust)
 library(gridExtra)
 library(cowplot)
 library(ggplot2)
+library(abind)
 #---------- B) Specification of the simulation and prior parameters -----------------------------------------------
 
 loadRData <- function(fileName){
@@ -98,52 +99,52 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000) {
   #---------- C) Gibbs sampling from the posterior -----------------------------------------------
   #print(B_0)
   ################ call MCMC procedure
+  ############### run 2 parallel chains 
   estGibbs <- MultVar_NormMixt_Gibbs_IndPriorNormalgamma(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
                                                          g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = FALSE, lambda = FALSE,seed =seed_)
   estGibbs_2 <- MultVar_NormMixt_Gibbs_IndPriorNormalgamma(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
                                                          g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = FALSE, lambda = FALSE,seed =seed_+1)
   
+  
   Mu <-estGibbs$Mu
-  Rhat_Mu_list<- list()
-  for (i in 1:dim(Mu)[2]){
-    for (j in 1:dim(Mu)[3]){
-      Mu_ <- mcmc.list(mcmc(estGibbs$Mu[,i,j]),mcmc(estGibbs_2$Mu[,i,j]))
-      Rhat_Mu_list<- append(Rhat_Mu_list, gelman.diag(Mu_)$psrf[1])
-    }
-  }
-  Mu_Rh <- summary(unlist(Rhat_Mu_list))
   Sigma <- estGibbs$Sigma
-  Rhat_Sigma_list<- list()
-  for (i in 1:dim(Sigma)[2]){
-    for (j in 1:dim(Sigma)[3]){
-      for (l in 1:dim(Sigma)[3])
-        Sigma_ <- mcmc.list(mcmc(estGibbs$Sigma[,i,j,l]),mcmc(estGibbs_2$Sigma[,i,j,l]))
-      Rhat_Sigma_list<- append(Rhat_Sigma_list, gelman.diag(Sigma_)$psrf[1])
-    }
-  }
-  Sigma_Rh <- summary(unlist(Rhat_Sigma_list))
   Eta <- estGibbs$Eta
   S_alt_matrix <- estGibbs$S_alt_matrix
   B <- estGibbs$B
   e0_vector <- estGibbs$e0_vector
   acc_rate <- estGibbs$acc_rate
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Nk_matrix_alt <- estGibbs$Nk_matrix_alt
+        
+  Eta_combined =   rbind(estGibbs$Eta[(burnin+1):M,],estGibbs_2$Eta[(burnin+1):M,])   
+  Mu_combined =   abind(estGibbs$Mu[(burnin+1):M,,],estGibbs_2$Mu[(burnin+1):M,,] ,along = 1 )                                
+  Sigma_combined =   abind(estGibbs$Sigma[(burnin+1):M,,,],estGibbs_2$Sigma[(burnin+1):M,,,] ,along = 1 )                                
+  
+  Nk_matrix_alt <- estGibbs$Nk_matrix_alt
   Nk_matrix_alt2 <- estGibbs_2$Nk_matrix_alt
   nonnormpost_mode_list <- estGibbs$nonnormpost_mode_list
 
+  ## comute log-likelihood for each chain
   ll1<- compute_log_lik(K, y, M, burnin, Eta, Mu, Sigma)
-  ll2<- compute_log_lik(K, y, M, burnin, estGibbs_2$Eta,estGibbs_2$Mu,  estGibbs_2$Sigma)
+  ll2<- compute_log_lik(K, y, M, burnin, estGibbs_2$Eta,estGibbs_2$Mu,estGibbs_2$Sigma)
+  ## covergence diagnostics
   log_lik_combines <- mcmc.list(mcmc(ll1),mcmc(ll2))
   Rhat_ll<- gelman.diag(log_lik_combines)$psrf[1]
   
+  ##### number of nonempty components (nne_gr), after burnin:
+  #nne_gr <- apply(Nk_matrix_alt, 1, function(x) sum(x != 0))
+  #table(nne_gr)
+  #plot(1:length(nne_gr), nne_gr, type = "l", ylim = c(1, max(nne_gr)), xlab = paste("iteration"), main = "number of non-empty components")
+  
+  
+  
+  
   
   ## convergence diagnostic
-  Sigma_es = apply(Sigma, c(2,3,4),effectiveSize)
-  Sigma_es_mean = mean(Sigma_es)
-  Mu_es = apply(Mu, c(2,3),effectiveSize)
-  Mu_es_mean = mean(Mu_es)
+  #Sigma_es = apply(Sigma, c(2,3,4),effectiveSize)
+  #Sigma_es_mean = mean(Sigma_es)
+  #Mu_es = apply(Mu, c(2,3),effectiveSize)
+  #Mu_es_mean = mean(Mu_es)
   ##### number of nonempty components (nne_gr), after burnin:
-  nne_gr <- apply(Nk_matrix_alt, 1, function(x) sum(x != 0))
+  nne_gr <- apply(Nk_matrix_alt2, 1, function(x) sum(x != 0))
   table(nne_gr)
   #plot(1:length(nne_gr), nne_gr, type = "l", ylim = c(1, max(nne_gr)), 
   #     xlab = paste("iteration"), main = "number of non-empty components")
@@ -161,22 +162,28 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000) {
   M0 <- sum(K0_vector == K0)
   M0  #M0 draws have exactly K0 non-empty groups
   
-return(list(p_k = p_K0,m_rh = Mu_Rh, s_rh = Sigma_Rh,ll_rhat= Rhat_ll,p_k_all = c(K0_vector,K0_vector2), Eta = Eta ))
+return(list(p_k = p_K0,ll_rhat= Rhat_ll,p_k_all = c(K0_vector,K0_vector2), Eta = Eta_combined, Mu= Mu_combined, Sigma = Sigma_combined ))
 }
 
 comparison_n<- function(ds_list, alpha,K_, M_it, nburn){
   pk<- list()
   N<- c()
   R_h <- c()
+  W_non_sorted <- list()
   W <- list()
+  Mu_mat <- list()
+  S_mat<- list()
   for (i in 1:length(ds_list)){
     data =  loadRData(ds_list[i])
     pk[[i]] <- MCMC_function(data, e0=alpha, K=K_, M=M_it, burnin=nburn)
     N[i]<- dim(data$y)[1]
     #Eta_ <- apply(pk[[1]]$Eta , 2, function(x) c(sort(x, decreasing = TRUE)))
-    Eta_<-matrix(NA, nrow =dim(pk[[i]]$Eta)[1],ncol =  dim(pk[[i]]$Eta)[2] )
+    Eta_<- matrix(NA, nrow =dim(pk[[i]]$Eta)[1],ncol =  dim(pk[[i]]$Eta)[2] )
     for (j in 1:dim(pk[[i]]$Eta)[1]){ Eta_[j,] <- sort(pk[[i]]$Eta[j,],decreasing = TRUE)}
     W[[i]] <- Eta_
+    W_non_sorted[[i]] <- pk[[i]]$Eta
+    Mu_mat[[i]] <- pk[[i]]$Mu
+    S_mat[[i]] <-pk[[i]]$Sigma
     }
   df_ = tibble(K= 1:K_)
   df2_ = tibble(K= 1:K_)
@@ -222,94 +229,5 @@ comparison_n<- function(ds_list, alpha,K_, M_it, nburn){
   df_l$alpha = c(rep(alpha,(M_it -nburn)*2*length(ds_list))) 
   df_l$Rh = df_l2$Rh_val
   df_l$N =df_l3$N_val
-  return(list(line = df, hist =df_l, weights = df4_post_))
+  return(list(line = df, hist =df_l, weights = df4_post_, eta = W_non_sorted, mu = Mu_mat, sig = S_mat))
 }
-
-
-
-MTM<- function(G, w_n, c ){
-  p.k = G$p
-  theta.k= G$theta
-  
-  ## stage 1
-  new_theta = sample(theta.k, length(theta.k), replace=FALSE, prob = p.k)
-  tau <- vector(mode="numeric", length=length(theta.k))
-  for (i in 1:length(theta.k)){
-    tau_k = which(new_theta ==theta.k[i] )
-    tau[i ]= tau_k
-  }
-  print(tau)
-  p_new = vector(mode="numeric", length=length(theta.k))
-  p_new= p.k
-  t = length(tau)
-  i = 1 
-  j = 1
-  while (i<t){
-    while (j<t){
-      if(tau[j]< tau[i]){
-        p1  = (as.numeric(unlist(strsplit(theta.k[tau[j]], split=':', fixed=TRUE))[1]) -  as.numeric(unlist(strsplit(theta.k[tau[i]], split=':', fixed=TRUE))[1]))^2
-        p2  = (as.numeric(unlist(strsplit(theta.k[tau[j]], split=':', fixed=TRUE))[2]) -  as.numeric(unlist(strsplit(theta.k[tau[i]], split=':', fixed=TRUE))[2]))^2
-        l2norm = sqrt(p1+p2)
-        if(l2norm <= w_n){
-          p_new[tau[i]] =p.k[tau[j]] + p.k[tau[i]]
-          p_new = p_new[- tau[j]]
-          tau = tau[tau!=tau[j]]
-          t = t-1
-          print(c(i,j))
-        }
-      }
-      j = j + 1
-    }
-    i = i +1
-  }
-}
-
-
-p_new = vector(mode="numeric", length=length(nj_k))
-p_new= p.k
-t = length(tau)
-i = 1 
-j = 1
-while (i<t){
-  while (j<t){
-    if(tau[j]< tau[i]){
-      l2norm = sqrt((theta_k[tau[j]] -  theta_k[tau[i]])^2 +(sigma_k[tau[j]] -  sigma_k[tau[i]])^2)
-      if(l2norm <= w_n){
-        p_new[tau[i]] =p.k[tau[j]] + p.k[tau[i]]
-        p_new = p_new[- tau[j]]
-        tau = tau[tau!=tau[j]]
-        t = t-1
-        print(c(i,j))
-      }
-    }
-    j = j + 1
-  }
-  i = i +1
-}
-
-#stage 2
-dat<- data.frame(p = p_new, th =theta_k[tau], sig=sigma_k[tau]  )
-dat[order(dat$p.Freq, decreasing = TRUE),]
-c = 0.5
-A = which(dat$p.Freq > (c*w_n)^2)
-N =  which(dat$p.Freq <= (c*w_n)^2)
-
-t = length(N)
-i=1
-j=1
-
-while ( i < t){
-  while ( j < t){
-    if (A[j] < A[i]){
-      lnorm =(dat$th[A[i]]-dat$th[A[j]])^2 +(dat$sig[A[i]]-dat$sig[A[j]])^2
-      if (dat$p.Freq[A[i]]*lnorm <= (c*w_n)^2){
-        N= c(N, A[i])
-        A=A[-i]
-        t = t-1
-      }
-    }
-  } 
-  return ()
-}
-
-
