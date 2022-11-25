@@ -206,7 +206,7 @@ comparison_n<- function(ds_list, alpha,K_, M_it, nburn){
   W_df <- do.call(cbind, W)
   df4_post <- cbind(df4,t(W_df))
   
-  df4_post_ <- gather(df4_post, key = "it",value="weights", (3+nburn):(3 +M_it))
+  df4_post_ <- gather(df4_post, key = "it",value="weights", 4: dim(df4_post)[2])
   
   df$alpha = c(rep(alpha,dim(df_)[1]*length(ds_list))) 
   df$Rh = df2$Rh_val

@@ -20,7 +20,7 @@ library(ggplot2)
 #number of components
 K_g <- 3
 # mixture weights
-eta <- c(0.4,0.3,0.2)
+eta <- c(0.5,0.3,0.2)
 mu <- cbind(c(0.8,0.8), c(0.8,-0.8), c(-0.8,0.8))
 ## covariance matrices:
 r <- length(mu[, 1])
