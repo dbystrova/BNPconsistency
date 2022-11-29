@@ -17,6 +17,8 @@ require(tidyr)
 library(dplyr)
 library(JuliaCall)
 library(viridis)
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/MTM.R")
+
 #julia_setup(installJulia = FALSE)
 #---------- B) Specification of the simulation and prior parameters -----------------------------------------------
 

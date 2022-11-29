@@ -21,7 +21,7 @@ ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3
             "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData")
 
 
-df_14<-comparison_n(ds_list, alpha = 3,K_ = 10, M_it= 5000 , nburn = 1000)
+df_14<-comparison_n(ds_list, alpha = 3,K_ = 10, M_it= 10000 , nburn = 2000)
 save(df_14, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig14.RData")
 
 

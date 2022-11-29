@@ -17,20 +17,15 @@ require(tidyr)
 library(dplyr)
 library(JuliaCall)
 library(viridis)
-source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/MTM.R")
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Utils_post.R")
 
 #julia_setup(installJulia = FALSE)
 #---------- B) Specification of the simulation and prior parameters -----------------------------------------------
 
-
-loadRData <- function(fileName){
-  #loads an RData file, and returns it
-  load(fileName)
-  get(ls()[ls() != "fileName"])
-}
 fig4 <- loadRData("~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig4.RData")
 fig4_ <- fig4$line%>%group_by(Process_type,N)%>%mutate(pkn =density/sum(density))
 K_ = max(fig4_$K)
+alpha_ = fig4$line$alpha[1]
 
 p = ggplot(fig4_, aes(x=K, colour = fig4_$Process_type)) +
   geom_line(aes(x=K, y = pkn))  +  ylab('')+
@@ -47,14 +42,21 @@ dev.off()
 julia <- julia_setup()
 julia_library("GibbsTypePriors")
 
+julia_assign("K_bound", K_)
+julia_assign("N1", 20)
+julia_assign("N2", 200)
+julia_assign("N3", 2000)
+julia_assign("N4", 20000)
+# alpha = e0*K
+julia_assign("alpha", fig4$line$alpha[1]*K_)
+print( fig4$line$alpha[1]*K_)
+#a = julia_eval("Pkn_Dirichlet_mult.(1:K_bound,N1, N1, alpha)")
 
-
-
-df_prior = tibble(K= 1:10, 
-                  Pkn_1 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,20, 10, 0.1)"),3),
-                  Pkn_2= round(julia_eval("Pkn_Dirichlet_mult.(1:10,200, 10, 0.1)"),3), 
-                  Pkn_3 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,2000, 10, 0.1)"),3),
-                  Pkn_4 = round(julia_eval("Pkn_Dirichlet_mult.(1:10,20000, 10, 0.1)"),3))%>% gather(Process_type, pkn,Pkn_1:Pkn_4)
+df_prior = tibble(K= 1:K_, 
+                  Pkn_1 = round(julia_eval("Pkn_Dirichlet_mult.(1:K_bound,N1, K_bound, alpha)"),3),
+                  Pkn_2= round(julia_eval("Pkn_Dirichlet_mult.(1:K_bound,N2, K_bound, alpha)"),3), 
+                  Pkn_3 = round(julia_eval("Pkn_Dirichlet_mult.(1:K_bound,N3, K_bound, alpha)"),3),
+                  Pkn_4 = round(julia_eval("Pkn_Dirichlet_mult.(1:K_bound,N4, K_bound, alpha)"),3))%>% gather(Process_type, pkn,Pkn_1:Pkn_4)
 
 df_prior$Type =rep("Prior", dim(df_prior)[1])
 fig4_$Type= rep("Posterior", dim(fig4_)[1])
@@ -70,7 +72,7 @@ p <- ggplot(df_merged, aes(K,pkn,color =Process_type))+geom_bar(aes(linetype=Typ
   geom_vline(xintercept=3,  linetype="dashed")+ylab("Density")+xlab(TeX('$K$'))+
   ggtitle(TeX(sprintf('Posterior distribution for the number of clusters for $\\alpha =%.3f$,$\\N =(%2.f,%2.f,%2.f, %2.f) $ ',fig4_$alpha[1],fig4_$N[1],fig4_$N[(max(fig4_$K)+1)],fig4_$N[(2*max(fig4_$K)+1)],fig4_$N[(3*max(fig4_$K)+1)])))+
   theme_minimal()+ scale_color_viridis(discrete= "TRUE", begin = 0, end = 0.9,option = "D", name = TeX(sprintf('$n$')) ,labels=unname(TeX(c(sprintf('$N$=%3.f',fig4_$N[1]),sprintf('$N$=%3.f',fig4_$N[(max(fig4_$K)+1)]),sprintf('$N$=%3.f',fig4_$N[(2*max(fig4_$K)+1)]),sprintf('$N$=%3.f',fig4_$N[(3*max(fig4_$K)+1)])))))+
-  scale_x_continuous(breaks = c(1,3,6,9), limits = c(0,11))+
+  scale_x_continuous(breaks = c(1,4,7,10), limits = c(0,11))+
   scale_linetype_manual(name = "Distribution",values = c(1, 2),guide = guide_legend(override.aes = list(linetype = c(1, 2),color = "black") ) )+
   facet_wrap(~Process_type,labeller = pkn_names)
 p
@@ -84,7 +86,7 @@ p <- ggplot(df_merged, aes(K,pkn,color =Process_type))+geom_bar(aes(linetype=Typ
   geom_vline(xintercept=3,  linetype="dashed")+ylab("Density")+xlab(TeX('$K_n$'))+
 #  ggtitle(TeX(sprintf('Posterior distribution for the number of clusters for $\\alpha =%.3f$,$\\N =(%2.f,%2.f,%2.f, %2.f) $ ',fig4_$alpha[1],fig4_$N[1],fig4_$N[(max(fig4_$K)+1)],fig4_$N[(2*max(fig4_$K)+1)],fig4_$N[(3*max(fig4_$K)+1)])))+
   theme_minimal()+ scale_color_viridis(discrete= "TRUE", begin = 0, end = 0.9,option = "D", name = TeX(sprintf('$n$')) ,labels=unname(TeX(c(sprintf('$n$=%3.f',fig4_$N[1]),sprintf('$n$=%3.f',fig4_$N[(max(fig4_$K)+1)]),sprintf('$n$=%3.f',fig4_$N[(2*max(fig4_$K)+1)]),sprintf('$n$=%3.f',fig4_$N[(3*max(fig4_$K)+1)])))))+
-  scale_x_continuous(breaks = c(1,3,6,9), limits = c(0,11))+
+  scale_x_continuous(breaks = c(1,4,7,10), limits = c(0,11))+
   scale_linetype_manual(name = "Distribution",values = c(2, 1),breaks=c("Prior","Posterior"),guide = guide_legend(override.aes = list(linetype = c(2, 1),color = "black") ) )+
   facet_wrap(~Process_type,labeller = pkn_names)
 p
@@ -113,39 +115,25 @@ dev.off()
 # Posterior expectation 
 
 ## Weights
+pkn.labs<- c("W_1","W_2","W_3","W_4")
+names(pkn.labs) <- c(paste0("n = ", fig4_$N[1]),paste0("n = ", fig4_$N[max(fig4_$K)+1]),paste0("n = ", fig4_$N[(2*max(fig4_$K)+1)]),paste0("n = ", fig4_$N[(3*max(fig4_$K)+1)]))
+pkn_names <- as_labeller(
+  c(`W_1` = paste0("n = ", fig4_$N[1]), `W_2` = paste0("n = ", fig4_$N[max(fig4_$K)+1]),`W_3` = paste0("n = ", fig4_$N[(2*max(fig4_$K)+1)]),`W_4` = paste0("n = ", fig4_$N[(3*max(fig4_$K)+1)])))
 
 weights_fig <-fig4$weights 
 weights_fig$n <-as.factor(weights_fig$W_val) 
-p <- ggplot(weights_fig, aes(x=K, y=weights, group =K, fill = n )) + 
+
+weights_fig_thin<- weights_fig%>%  group_by(K,n, W_,W_val) %>%  filter(row_number() %% 5 == 1)
+
+
+p <- ggplot(weights_fig_thin, aes(x=K, y=weights, group =K, fill = n )) + ylab("Weights")+xlab(TeX('$K_n$'))+scale_x_continuous(breaks = c(1,4,7,10), limits = c(0,11))+
   geom_boxplot(alpha=0.5) +scale_fill_viridis(discrete= "TRUE", begin = 0, end = 0.9,option = "D", name = TeX(sprintf('$n$')) ,labels=unname(TeX(c(sprintf('$n$=%3.f',fig4_$N[1]),sprintf('$n$=%3.f',fig4_$N[(max(fig4_$K)+1)]),sprintf('$n$=%3.f',fig4_$N[(2*max(fig4_$K)+1)]),sprintf('$n$=%3.f',fig4_$N[(3*max(fig4_$K)+1)])))))+
   ggtitle(TeX(sprintf('Posterior distribution of the component weights $\\alpha =%.3f$,$\\N =(%2.f,%2.f,%2.f, %2.f) $ ',fig4_$alpha[1],fig4_$N[1],fig4_$N[(max(fig4_$K)+1)],fig4_$N[(2*max(fig4_$K)+1)],fig4_$N[(3*max(fig4_$K)+1)])))+
-  theme_minimal()+  facet_wrap(~W_val)
+  theme_minimal()+  facet_wrap(~W_,labeller = pkn_names)
 p
 pdf(file="~/Documents/GitHub/BNPconsistency/figures/Figure4_4.pdf")
 plot(p)
 dev.off()
-
-
-### MTM
-
-apply_MTM<- function(p_eta, p_mu, p_sig,c,n, w_n = (log(n)/n)^(1/4)){
-  post_k<-c()
-  it <- dim(p_eta)[1]
-  for (k in 1:it ){
-    G <- list()
-    G$p = p_eta[k,]
-    G$theta = list ()
-    for (i in 1:length(p_eta[k,])){
-      G$theta[[i]]<-  list(p_mu[k,,i],p_sig[k,,,i])
-    }
-    G.post <- MTM(G, w_n, c)
-    print(G.post$p)
-    post_k[k]<- length(G.post$p)
-  }
-  
-  return(post_k)
-}
-
 
 
 c_vec = c(0.1, 0.5, 1, 5)
@@ -156,16 +144,30 @@ df_k_2000<- df_post(2000, c_vec,ind=3, post = fig4  )
 df_k_20000<- df_post(20000, c_vec,ind=4, post = fig4  )
 
 df_fin<- rbind(df_k_20,df_k_200,df_k_2000,df_k_20000)
+pkn.labs<- c(20,200,2000,20000)
+names(pkn.labs) <- c(paste0("n = ", fig4_$N[1]),paste0("n = ", fig4_$N[max(fig4_$K)+1]),paste0("n = ", fig4_$N[(2*max(fig4_$K)+1)]),paste0("n = ", fig4_$N[(3*max(fig4_$K)+1)]))
+pkn_names <- as_labeller(
+  c(`20` = paste0("n = ", fig4_$N[1]), `200` = paste0("n = ", fig4_$N[max(fig4_$K)+1]),`2000` = paste0("n = ", fig4_$N[(2*max(fig4_$K)+1)]),`20000` = paste0("n = ", fig4_$N[(3*max(fig4_$K)+1)])))
 
-p <- ggplot(df_fin, aes(pkn,color =Process_type)) + geom_histogram(aes(y = ..density..),binwidth = 1, alpha=0.5,position = "identity",fill='white' )+geom_vline(xintercept=3,  linetype="dashed")+
+
+df_fin_bar = df_fin %>%
+  group_by(Process_type,N, pkn) %>%
+  summarize(count=n())%>% mutate(pkn_dens =count/sum(count))
+K_ = max(fig4_$K)
+alpha_ = fig4$line$alpha[1]
+
+
+p <- ggplot(df_fin_bar, aes(pkn,pkn_dens,color =Process_type, linetype = Process_type))+ geom_bar(aes(linetype=Process_type),size = 0.7, stat="identity",alpha =0.0, position = "identity", fill= "white")+
+  geom_vline(xintercept=3,  linetype="dashed")+ylab("Density")+xlab(TeX('$K_n$'))+
   ggtitle(TeX(sprintf('PD for the num of clusters for MTM $\\alpha =%.3f$,$\\c_vec =(%2.1f,%2.1f,%2.1f, %2.1f) $ ',fig4_$alpha[1],c_vec[1],c_vec[2],c_vec[3],c_vec[4])))+
   scale_color_viridis(discrete= "TRUE", begin = 0, end = 0.9,option = "D",name = TeX(sprintf('$c$')) ,labels=unname(TeX(c(sprintf('$c$=%3.1f', c_vec[1]),sprintf('$c$=%3.1f',c_vec[2]),sprintf('$c$=%3.f',c_vec[3]),sprintf('$c$=%3.f',c_vec[4])))))+
-  theme_minimal()+ 
-  scale_x_continuous(breaks = c(1,3,6,9), limits = c(0,11))+
+  theme_minimal()+ ylab("Density")+xlab(TeX('$K_n$')) +
+  scale_linetype_manual(values=c("solid", "dashed","longdash","dotted"),name = TeX(sprintf('$c$')),labels=unname(TeX(c(sprintf('$c$=%3.1f', c_vec[1]),sprintf('$c$=%3.1f',c_vec[2]),sprintf('$c$=%3.f',c_vec[3]),sprintf('$c$=%3.f',c_vec[4]))))) +
+  scale_x_continuous(breaks = c(1,4,7,10), limits = c(0,11))+
   facet_wrap(~N)
 p
 
-pdf(file="~/Documents/GitHub/BNPconsistency/figures/Figure4_6.pdf")
+pdf(file="~/Documents/GitHub/BNPconsistency/figures/Figure4_5.pdf")
 plot(p)
 dev.off()
 
@@ -190,12 +192,23 @@ df_MTM_Mean$name<- rep("Mean", dim(df_MTM_MAP)[1])
 
 df_MTM <- rbind(df_MTM_MAP, df_MTM_Mean)
 
-p <- ggplot(df_MTM, aes(c,pkn,color =Process_type)) + geom_line()+
+p <- ggplot(df_MTM, aes(c,pkn,color =Process_type)) + geom_point()+
   ggtitle(TeX(sprintf('PD for the num of clusters for MTM $\\alpha =%.3f$,$\\c_vec =(%2.1f,%2.1f,%2.1f, %2.1f) $ ',fig4_$alpha[1],c_vec[1],c_vec[2],c_vec[3],c_vec[4])))+
    theme_minimal()+  facet_wrap(~name)
 p
 
-
 pdf(file="~/Documents/GitHub/BNPconsistency/figures/Figure4_7.pdf")
 plot(p)
 dev.off()
+
+
+
+
+df_fin_ <- df_fin%>%group_by(Process_type,N)%>%mutate(pkn_dens =pkn_dens/sum(pkn_dens))
+K_ = max(fig4_$K)
+
+
+df = df_fin %>%
+  group_by(Process_type,N, pkn) %>%
+  summarize(count=n())
+
