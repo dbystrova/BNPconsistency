@@ -21,7 +21,7 @@ library(viridis)
 source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Utils_post.R")
 source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/plt_Figure3.R")
 
-df_fig3_1 = plt_fig3( input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig4.RData", c_vec =seq(0.01, 2, length.out = 3),alpha = 0.01 ,fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure3/" )
+df_fig3_1 = plt_fig3( input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig4.RData", c_vec =seq(0.01, 2, length.out = 30),alpha = 0.01 ,fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure3/" )
 df_fig3_2 = plt_fig3(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig7.RData", c_vec =seq(0.01, 2, length.out = 30), alpha =1,fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure3/" )
 df_fig3_3 = plt_fig3( input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig13.RData", c_vec =seq(0.01, 2, length.out = 30), alpha = 2.5,fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure3/" )
 df_fig3_4 = plt_fig3(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig14.RData", c_vec =seq(0.01, 2, length.out = 30), alpha = 3,fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure3/" )

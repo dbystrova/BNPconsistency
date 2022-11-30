@@ -107,5 +107,5 @@ comparison_n_2<- function(ds_list,K_, M_it, nburn, alpha_l){
 
 
 
-df_9<-comparison_n_2(ds_list,K_ = 10, M_it= 10000 , nburn = 2000,alpha_l = alpha_list)
+df_9<-comparison_n_2(ds_list,K_ = 10, M_it=15000 , nburn = 5000,alpha_l = alpha_list)
 save(df_9, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig9.RData")
