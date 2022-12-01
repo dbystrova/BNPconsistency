@@ -17,15 +17,14 @@ library(cowplot)
 library(ggplot2)
 #---------- B) Specification of the simulation and prior parameters -----------------------------------------------
 
-ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_200.RData",
-            "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData")
+ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_200.RData",
+            "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_40000.RData")
 
 #E[K_n] = 5
 #julia <- julia_setup()
 #julia_library("GibbsTypePriors")
 #check: sum(round(julia_eval("Pkn_Dirichlet_mult.(1:10,20000, 10, 0.6)"),3)*c(1:10))
 
-alpha_list<- c(3.2,1.24, 0.81, 0.6)
 
 comparison_n_2<- function(ds_list,K_, M_it, nburn, alpha_l){
   pk<- list()
@@ -105,7 +104,8 @@ comparison_n_2<- function(ds_list,K_, M_it, nburn, alpha_l){
 }
 
 
+alpha_list<- c(3.2,1.24, 0.81, 0.6)
 
 
-df_9<-comparison_n_2(ds_list,K_ = 10, M_it=15000 , nburn = 5000,alpha_l = alpha_list)
+df_9<-comparison_n_2(ds_list,K_ = 10, M_it=10000 , nburn = 2000,alpha_l = alpha_list)
 save(df_9, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig9.RData")

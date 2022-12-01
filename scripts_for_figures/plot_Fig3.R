@@ -26,4 +26,5 @@ df_fig3_2 = plt_fig3(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_f
 df_fig3_3 = plt_fig3( input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig13.RData", c_vec =seq(0.01, 2, length.out = 30), alpha = 2.5,fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure3/" )
 df_fig3_4 = plt_fig3(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig14.RData", c_vec =seq(0.01, 2, length.out = 30), alpha = 3,fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure3/" )
 
-df_1 = lt_fig2(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig9.RData", c_v =c(0.1, 0.5, 1, 2),alpha_list=  c(3.2,1.24, 0.81, 0.6), fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure2/" )
+df_fig3_5 = plt_fig3(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig9.RData", c_vec =seq(0.01, 2, length.out = 30), alpha = 3,fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure3/" )
+

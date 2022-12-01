@@ -22,7 +22,7 @@ library(viridis)
 
 input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig9.RData"
 
-plt_fig2<-function(input_file, c_v =c(0.1, 0.5, 1, 2) , alpha_list, fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure2/" ){
+plt_fig2<-function(input_file, c_v =c(0.1, 0.5, 1, 2) , alpha_list, n_list, fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure2/" ){
   
   # fig_path = "../figures/Figure1/"
   fig_df <- loadRData(input_file)
@@ -50,7 +50,7 @@ plt_fig2<-function(input_file, c_v =c(0.1, 0.5, 1, 2) , alpha_list, fig_path= "~
   julia <- julia_setup()
   julia_library("GibbsTypePriors")
   julia_assign("al", alpha_list)
-  julia_assign("Nl", c(20,200,2000,20000))
+  julia_assign("Nl", n_list)
   julia_assign("K_bound", K_)
  
   df_prior = tibble(K= 1:10, 
@@ -140,7 +140,7 @@ plt_fig2<-function(input_file, c_v =c(0.1, 0.5, 1, 2) , alpha_list, fig_path= "~
     }  
     W_p_sorted[[j]] = Eta_sp
   }
-  n_l = c(20,200,2000,20000)
+  n_l = n_list
   dfW = tibble(K= 1:K_)
   for (j in 1:4){
     name_ <- paste("W_sp", j, sep = "")
@@ -180,15 +180,15 @@ plt_fig2<-function(input_file, c_v =c(0.1, 0.5, 1, 2) , alpha_list, fig_path= "~
   
   c_vec =c_v
   
-  df_k_20<- df_post(20, c_vec=c_vec,ind=1, post = fig_df  )
-  df_k_200<- df_post(200, c_vec = c_vec,ind=2, post = fig_df  )
-  df_k_2000<- df_post(2000, c_vec=c_vec,ind=3, post = fig_df  )
-  df_k_20000<- df_post(20000,c_vec=c_vec,ind=4, post = fig_df  )
+  df_k_20<- df_post(n_list[1], c_vec=c_vec,ind=1, post = fig_df  )
+  df_k_200<- df_post(n_list[2], c_vec = c_vec,ind=2, post = fig_df  )
+  df_k_2000<- df_post(n_list[3], c_vec=c_vec,ind=3, post = fig_df  )
+  df_k_20000<- df_post(n_list[4],c_vec=c_vec,ind=4, post = fig_df  )
   df_fin<- rbind(df_k_20,df_k_200,df_k_2000,df_k_20000)
   
   
   df_fin<- rbind(df_k_20,df_k_200,df_k_2000,df_k_20000)
-  pkn.labs<- c(20,200,2000,20000)
+  pkn.labs<- n_list
   names(pkn.labs) <- c(paste0("n = ", fig_df_mut$N[1]),paste0("n = ", fig_df_mut$N[max(fig_df_mut$K)+1]),paste0("n = ", fig_df_mut$N[(2*max(fig_df_mut$K)+1)]),paste0("n = ", fig_df_mut$N[(3*max(fig_df_mut$K)+1)]))
   pkn_names <- as_labeller(
     c(`20` = paste0("n = ", fig_df_mut$N[1]), `200` = paste0("n = ", fig_df_mut$N[max(fig_df_mut$K)+1]),`2000` = paste0("n = ", fig_df_mut$N[(2*max(fig_df_mut$K)+1)]),`20000` = paste0("n = ", fig_df_mut$N[(3*max(fig_df_mut$K)+1)])))
@@ -214,7 +214,7 @@ plt_fig2<-function(input_file, c_v =c(0.1, 0.5, 1, 2) , alpha_list, fig_path= "~
   plot(pm)
   dev.off()
   
-  n_vec = c(20,200,2000,20000)
+  n_vec =n_list
   
   df_MTM_MAP= tibble(c = c_vec,
                      Pkn_n1 = as.numeric(colnames(table(df_k_20$Process_type, df_k_20$pkn))[apply(table(df_k_20$Process_type, df_k_20$pkn), 1, which.max)]),

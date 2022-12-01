@@ -21,4 +21,4 @@ source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Utils_post.R")
 source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/plt_Figure2.R")
 
 # Ek =5
-plt_fig2(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig9.RData", c_v =c(0.1, 0.5, 1, 2),alpha_list=  c(3.2,1.24, 0.81, 0.6), fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure2/" )
+plt_fig2(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig9.RData", c_v =c(0.1, 0.5, 1, 2),alpha_list=  c(3.2,1.24, 0.81, 0.6),n_list = c(200,2000,20000,40000), fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure2/" )
