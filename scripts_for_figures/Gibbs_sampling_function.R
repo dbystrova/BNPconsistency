@@ -43,7 +43,7 @@ compute_log_lik<- function(K, y, M, burnin, Eta, Mu, Sigma){
 
 
 
-MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000) {
+MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000, priorOnE0 = FALSE) {
   print(seed_)
   y <- as.matrix(data$y)
   Mmax <- M + burnin
@@ -101,9 +101,9 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000) {
   ################ call MCMC procedure
   ############### run 2 parallel chains 
   estGibbs <- MultVar_NormMixt_Gibbs_IndPriorNormalgamma(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
-                                                         g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = FALSE, lambda = FALSE,seed =seed_)
+                                                         g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = priorOnE0, lambda = FALSE,seed =seed_)
   estGibbs_2 <- MultVar_NormMixt_Gibbs_IndPriorNormalgamma(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
-                                                         g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = FALSE, lambda = FALSE,seed =seed_+1)
+                                                         g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = priorOnE0, lambda = FALSE,seed =seed_+1)
   
   
   Mu <-estGibbs$Mu
