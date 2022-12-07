@@ -94,11 +94,8 @@ comparison_n_3<- function(ds_list,K_, M_it, nburn){
   return(list(line = df, hist =df_l, weights = df4_post_, eta = W_non_sorted, mu = Mu_mat, sig = S_mat))
 }
 
-## number of mixture components
-K_nc <- 10
-## number of iterations, M without burnin
-M_it <- 10000
-burnin_ <- 2000
+M_it <- 100
+burnin_ <- 20
 
 ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_200.RData",
             "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData")

@@ -11,7 +11,6 @@ library(Rcpp)
 library(gtools)
 library(JuliaCall)
 # install.packages("devtools")
-devtools::install_github("konkam/RGibbsTypePriors")
 Rcpp::sourceCpp('src/user_fns.cpp')
 #based on the blogpost "https://www.kent.ac.uk/smsas/personal/msr/rlaptrans.html"
 source("rlaptrans.r")
@@ -67,46 +66,9 @@ Prior_on_K_PYM<- function(alpha, sigma, H,ns, runs=10^4 ){
 # p
 # 
 
-incltxt <- '
-double reccursive_Cnk(const int n, const int k, const double sigma) {
-if (k == 0) {
-if ( n == 0) {
-return(1);
-}
-else{ 
-return (0);
-} 
-} 
-else{
-if (k>n){
-return(0);
-}
-else{
-return((n - 1 - sigma*k)*reccursive_Cnk(n-1, k, sigma) + sigma*reccursive_Cnk(n-1, k-1, sigma));
-}
-}
-}'
 
 
-
-Cnk_Rcpp <- cxxfunction(signature(ns="integer", ks="integer", sigmas ="numeric"),
-                        plugin="Rcpp",
-                        incl=incltxt,
-                        body='
-                        int n = Rcpp::as<int>(ns);
-                        int k = Rcpp::as<int>(ks);
-                        float sigma= Rcpp::as<float>(sigmas);
-                        return Rcpp::wrap( reccursive_Cnk(n,k,sigma));
-                        ')
-
-
-
-pdf_lk<- function(l,v, n_k, sigma,H){
-  return( ((v/H)^l)*Cnk_Rcpp(n_k,l,sigma))
-}
-
-
-pdf_lk_mat<- function(l,v, n_k, sigma,H, mat){
+pdf_lk_mat<- function(l,v, n_k, mat){
   return( (v^l)*exp(mat[n_k,l]))
 }
 
@@ -137,7 +99,7 @@ sample_lk_mat<- function(nk_vec,v,sigma,H,M){
       l_post[i]=l_vec
     }
     else{
-      p_v<- sapply(l_vec, function(x) pdf_lk_mat(x,v,nk_vec[i],sigma,H,mat=M))
+      p_v<- sapply(l_vec, function(x) pdf_lk_mat(x,v,nk_vec[i],mat=M))
       pv_norm<- p_v/sum(p_v)
       l_post[i]<- sample(1:(nk_vec[i]),size=1, replace=TRUE, prob=pv_norm)
     }
@@ -149,7 +111,7 @@ sample_lk_mat<- function(nk_vec,v,sigma,H,M){
 
 ptr_N01 <- create_xptr("log_v_pdf_C")
 ptr_logv_mat <- create_xptr("log_v_pdf_comp_mat")
-
+#log_v_pdf_comp_mat
 ######## Example from Baysian nonparametric data analysis 
 
 
@@ -220,7 +182,7 @@ compute_matrix<- function(n, sigma, K){
         julia_assign("j", as.integer(j))
         julia_assign("H", as.integer(K))
         julia_assign("σ", sigma)
-        Mat[i,j]= julia_eval( " log(GibbsTypePriors.Cnk(i, j, σ)) - l* log(H)|> Float64")
+        Mat[i,j]= julia_eval( " log(GibbsTypePriors.Cnk(i, j, σ)) - j* log(H)|> Float64")
       }
     }
   }
@@ -325,19 +287,20 @@ sample.vh2 <- function(r){
   ## returns: wh
   #r=c
   n_k<- table(r)
-  lh<-  rep(0,H)
-  #sample v
+  #lh<-  rep(0,H)
+  #sample v by ptr_logv_mat
   v_s = ru_rcpp(logf = ptr_logv_mat,alpha=alpha, sigma=sigma,H=H,k = length(n_k), nk_vec=n_k,Cnk_mat=mat, n=1,  d=1, init=1)
   #sample lk
   lk <- sample_lk_mat(n_k,v_s$sim_vals[1],sigma,H,mat)
-  lh[c(as.numeric(c(names(n_k))))]= lk
+  #lh[c(as.numeric(c(names(n_k))))]= lk
   vh <- rep(0,H)  # initialize
   W_h <- rep(0,H)
   P_h<-  rep(0,H)
   p_vec<- n_k - lk*sigma
-  W_h<- rdirichlet(1,c(p_vec, sum(lk)*sigma + alpha))
-  ### R
   alpha_post<- alpha + sum(lk)*sigma 
+  
+  W_h<- rdirichlet(1,c(p_vec, alpha_post))
+  ### R
   Uv<- rgamma(1,alpha_post/sigma,alpha_post/sigma)
   U<- (Uv)^(1/sigma)
   x.rlap <- rlaptrans(H, lt.temp_st_pdf, c=alpha_post/(sigma*H), sigma, k=U)
@@ -348,7 +311,7 @@ sample.vh2 <- function(r){
 }
 
 n_k = table(G$r)
-v_s = ru_rcpp(logf = ptr_logv_mat,alpha=alpha, sigma=sigma,H=H,k = length(n_k), nk_vec=n_k,Cnk_mat=M2, n=1,  d=1, init=1)
+v_s = ru_rcpp(logf = ptr_logv_mat,alpha=alpha, sigma=sigma,H=H,k = length(n_k), nk_vec=n_k,Cnk_mat=mat, n=1,  d=1, init=1)
 
 
 

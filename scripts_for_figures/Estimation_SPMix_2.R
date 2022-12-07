@@ -3,9 +3,10 @@
 ############################################################################
 
 
+
 sample.pym_w <- function(S_k, alpha, sigma, H, mat ){
   n_k = table(S_k)
-  #sample v by ptr_logv_mat
+    #sample v by ptr_logv_mat
   v_s = ru_rcpp(logf = ptr_logv_mat,alpha=alpha, sigma=sigma,H=H,k = length(n_k), nk_vec=n_k,Cnk_mat=mat, n=1,  d=1, init=1)
   #sample lk
   lk <- sample_lk_mat(n_k,v_s$sim_vals[1],sigma,H,mat)
@@ -43,9 +44,8 @@ compute_matrix<- function(n, sigma, K){
   return (Mat)
 }
 
-
-MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
-                                                       g0, G0, b0, B0k, nu, lam_0, M, burnin, c_proposal, priorOnE0, lambda,seed = 1, sigma_py =0) {
+MultVar_NormMixt_Gibbs_IndPriorNormalgamma_2 <- function(y, S_0, mu_0, sigma_0, eta_0, e0, sigma = 0, c0, C0_0, 
+                                                       g0, G0, b0, B0k, nu, lam_0, M, burnin, c_proposal, priorOnE0, lambda,seed = 1) {
   
   set.seed(seed)
   print(seed)
@@ -72,6 +72,7 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
   B_j <- lam_0
   
   C0_j <- C0_0
+  #change
   #invB0_j <- solve(B0)
   invB0_j <- solve(B0k)
   b0_j <- b0
@@ -79,16 +80,15 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
   print(Nk_j)
   e0_p <- 0
   
-  if (sigma_py > 0 ){
-    
-    julia <- julia_setup()
-    julia_library("GibbsTypePriors")
-    julia_library("DataFrames")
-    julia_library("DataFramesMeta")
-    
-    mat = compute_matrix(N, sigma, K )
- 
-  }
+  
+  julia <- julia_setup()
+  julia_library("GibbsTypePriors")
+  julia_library("DataFrames")
+  julia_library("DataFramesMeta")
+  
+  mat = compute_matrix(N, sigma, K )
+  
+  
   
   ## generating matrices for storing the draws:
   result <- list(Eta = matrix(0, M, K), Mu = array(0, dim = c(M, r, K)), Sigma = array(0, dim = c(M, 
@@ -154,13 +154,10 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
     
     
     #################### first step: parameter simulation (conditional on classification S_j): (1a): Sample eta_j:
-    ek <- e0 + Nk_j
-    if (sigma_py == 0){
-      eta_j <- bayesm::rdirichlet(ek)
-    } else{
-      eta_j <- sample.pym_w(S_j, alpha = e0, sigma = sigma_py, H = K, mat)
-    }
-    
+    #ek <- e0 + Nk_j
+    #eta_j <- bayesm::rdirichlet(ek)
+    eta_j <- sample.pym_w(S_j, alpha = e0, sigma = sigma, H = K, mat)
+
     #### (1b): sample Sigma^{-1} for each component k: calculate posterior moments ck and Ck and sample
     #### from the inverted Wishart distribution:
     Ck <- array(0, dim = c(r, r, K))
