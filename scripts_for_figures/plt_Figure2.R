@@ -31,7 +31,7 @@ plt_fig2<-function(input_file, c_v =c(0.1, 0.5, 1, 2) , alpha_list, n_list, fig_
   julia <- julia_setup()
   julia_library("GibbsTypePriors")
   julia_assign("al", alpha_list[1])
-  E_k =  round(sum(round(julia_eval("Pkn_Dirichlet_mult.(1:10,20, 10, al)"),3)*c(1:10)),1)
+  E_k =  round(sum(round(julia_eval("Pkn_Dirichlet_mult.(1:10,200, 10, al)"),3)*c(1:10)),1)
   
   
    p_l = ggplot(fig_df_mut, aes(x=K, colour = fig_df_mut$Process_type)) +
