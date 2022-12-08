@@ -22,7 +22,7 @@ ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3
             "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData")
 
 
-data =  loadRData(ds_list[2])
+data =  loadRData(ds_list[3])
 
 
 

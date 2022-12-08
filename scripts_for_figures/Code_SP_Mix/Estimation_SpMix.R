@@ -1,13 +1,56 @@
 ############################################################################
 ####Gibbs Sampling for Fitting a Sparse Finite Multivariate Gaussian Mixture
 ############################################################################
+library(inline)
+library(rbenchmark)
+library(frailtySurv)
+library(rust)
+library(RcppArmadillo)
+library(arm)
+library(Rcpp)
+library(gtools)
+library(JuliaCall)
+
+Rcpp::sourceCpp('~/Documents/GitHub/BNPconsistency/scripts_for_figures/Code_SP_Mix/src/user_fns.cpp')
+#based on the blogpost "https://www.kent.ac.uk/smsas/personal/msr/rlaptrans.html"
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Code_SP_Mix/rlaptrans.r")
+
+lt.temp_st_pdf <- function(s, c, sigma, k) {
+  exp( - c*( (s+k)^(sigma)  - k^(sigma) ))
+}
+
+pdf_lk_mat<- function(l,v, n_k, sigma,H, mat){
+  return( (v^l)*exp(mat[n_k,l]))
+}
+
+sample_lk_mat<- function(nk_vec,v,sigma,H,M){
+  l_post<-c()
+  k<- length(nk_vec)
+  for (i in 1:k){
+    l_vec<- 1:nk_vec[i]
+    if (length(l_vec)==1){
+      l_post[i]=l_vec
+    }
+    else{
+      p_v<- sapply(l_vec, function(x) pdf_lk_mat(x,v,nk_vec[i],sigma,H,mat=M))
+      pv_norm<- p_v/sum(p_v)
+      l_post[i]<- sample(1:(nk_vec[i]),size=1, replace=TRUE, prob=pv_norm)
+    }
+  }
+  return(l_post)
+}
 
 
-sample.pym_w <- function(S_k, alpha, sigma, H, mat ){
+
+
+
+sample.pym_w <- function(S_k, alpha, sigma, H, mat, fun =ptr_logv_mat  ){
   n_k = table(S_k)
+  print(n_k)
   #sample v by ptr_logv_mat
-  v_s = ru_rcpp(logf = ptr_logv_mat,alpha=alpha, sigma=sigma,H=H,k = length(n_k), nk_vec=n_k,Cnk_mat=mat, n=1,  d=1, init=1)
+  v_s = ru_rcpp(logf = fun,alpha=alpha, sigma=sigma,H=H,k = length(n_k), nk_vec=n_k,Cnk_mat=mat, n=1,  d=1, init=1)
   #sample lk
+  print(v_s$sim_vals[1])
   lk <- sample_lk_mat(n_k,v_s$sim_vals[1],sigma,H,mat)
   #lh[c(as.numeric(c(names(n_k))))]= lk
   W_h <- rep(0,H)
@@ -42,6 +85,9 @@ compute_matrix<- function(n, sigma, K){
   }
   return (Mat)
 }
+#estGibbs_2 <- MultVar_NormMixt_Gibbs_IndPriorNormalgamma(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
+ #                                                        g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = priorOnE0, lambda = FALSE,seed =seed_+1, sigma_py =  sigma_py)
+
 
 
 MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
@@ -78,6 +124,8 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
   Nk_j <- tabulate(S_j, K)
   print(Nk_j)
   e0_p <- 0
+  #ptr_N01 <- create_xptr("log_v_pdf_C")
+  ptr_logv_mat <- create_xptr("log_v_pdf_comp_mat")
   
   if (sigma_py > 0 ){
     
@@ -86,10 +134,10 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
     julia_library("DataFrames")
     julia_library("DataFramesMeta")
     
-    mat = compute_matrix(N, sigma, K )
+    Cnk_mat = compute_matrix(N, sigma_py, K )
  
   }
-  
+  print(Cnk_mat)
   ## generating matrices for storing the draws:
   result <- list(Eta = matrix(0, M, K), Mu = array(0, dim = c(M, r, K)), Sigma = array(0, dim = c(M, 
                                                                                                   r, r, K)), S_alt_matrix = matrix(0L, M, N), Nk_matrix_alt = matrix(0L, M, K), Nk_view = matrix(0L, 
@@ -158,7 +206,7 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
     if (sigma_py == 0){
       eta_j <- bayesm::rdirichlet(ek)
     } else{
-      eta_j <- sample.pym_w(S_j, alpha = e0, sigma = sigma_py, H = K, mat)
+      eta_j <- sample.pym_w(S_j, alpha = e0, sigma = sigma_py, H = K, mat =Cnk_mat, fun =ptr_logv_mat )
     }
     
     #### (1b): sample Sigma^{-1} for each component k: calculate posterior moments ck and Ck and sample
