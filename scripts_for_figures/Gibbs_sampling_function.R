@@ -104,7 +104,7 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000, priorOnE0 = 
                                                          g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = priorOnE0, lambda = FALSE,seed =seed_, sigma_py =  sigma_py)
   estGibbs_2 <- MultVar_NormMixt_Gibbs_IndPriorNormalgamma(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
                                                          g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = priorOnE0, lambda = FALSE,seed =seed_+1, sigma_py =  sigma_py)
-  
+
   
   Mu <-estGibbs$Mu
   Sigma <- estGibbs$Sigma
