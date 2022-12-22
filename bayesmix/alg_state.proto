@@ -1,10 +1,0 @@
-syntax = "proto3";
-
-import "ls_state.proto";
-import "matrix.proto";
-import "mixing_state.proto";
-import "algorithm_state.proto";
-
-package bayesmix;
-
-message AlgorithmState {repeated ClusterState cluster_states = 1;repeated int32 cluster_allocs = 2 [packed = true];MixingState mixing_state = 3;int32 iteration_num = 4;HierarchyHypers hierarchy_hypers = 5;}

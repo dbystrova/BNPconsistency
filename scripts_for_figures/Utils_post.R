@@ -126,36 +126,3 @@ df_post<- function(n, c_vec,ind, post){
   return(df_post_k)
   
 }
-
-
-angle_dist<- function(point, origin= c(0,0), refvec = c(1,0)){
-  len = sqrt(sum((point - origin)^2))
-  if (len == 0){return(c(angle = NA, dist = len))}
-  #norm_v = point/len
-  #prod = sum(norm_v*refvec)
-  #diffprod = refvec[2]*point[1] - point[2]*refvec[1]
-  angle =atan2(point[2], point[1])
-  if (angle < 0) {angle =2*pi + angle }
-  {return(c(angle = angle, dist = len))}
-}
-
-
-
-
-#post_k<-c()
-
-#for (k in 1:200 ){
-#  print(k)
-#  G <- list()
-#  G$p = fig6$eta[[1]][k,]
-#  G$theta = list ()
-#  for (i in 1:length(fig6$eta[[1]][k,])){
-#    G$theta[[i]]<-  list(fig6$mu[[1]][k,,i],fig6$sig[[1]][k,,,i])
-#  }
-#  c=0.5
-#  n =20
-#  w_n = (log(n)/n)^(1/4)
-#  G.post <- MTM(G, w_n, c)
-#  print(G.post$p)
-#  post_k[k]<- length(G.post$p)
-#}

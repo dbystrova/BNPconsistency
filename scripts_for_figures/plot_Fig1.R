@@ -1,4 +1,4 @@
-#rm(list=ls()) 
+rm(list=ls()) 
 #setwd("~/Documents/GitHub/BNPconsistency/scripts_for_figures")
 ## read sources
 require(e1071)
@@ -21,15 +21,11 @@ source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Utils_post.R")
 source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/plt_Figure1.R")
 
 # e0 = 0.01
-plt_fig1(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig4.RData", c_v =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure1/" )
+plt_fig1(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig4.RData", c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure1/" )
 # e0 =1
-plt_fig1(input_file= "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig7.RData", c_v =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure1/" )
+plt_fig1(input_file= "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig7.RData", c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure1/" )
 #e0 = 2.5
-plt_fig1(input_file= "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig13.RData", c_v =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure1/" )
+plt_fig1(input_file= "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig13.RData", c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure1/" )
 #e0 = 3
-plt_fig1(input_file= "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig14.RData", c_v =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure1/" )
-
-#PY
-#e0 = 1 #sigma = 0.25
-plt_fig1(input_file= "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig14.RData", c_v =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure1/" )
+plt_fig1(input_file= "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig14.RData", c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure1/" )
 

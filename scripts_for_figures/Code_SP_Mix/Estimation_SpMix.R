@@ -91,7 +91,7 @@ compute_matrix<- function(n, sigma, K){
 
 
 MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
-                                                       g0, G0, b0, B0k, nu, lam_0, M, burnin, c_proposal, priorOnE0, lambda,seed = 1, sigma_py =0) {
+                                                       g0, G0, b0, B0k, nu, lam_0, M, burnin, c_proposal, priorOnE0, lambda,seed = 1, sigma_py =0, a_g = 10,b_g =10) {
   
   set.seed(seed)
   print(seed)
@@ -135,9 +135,9 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
     julia_library("DataFramesMeta")
     
     Cnk_mat = compute_matrix(N, sigma_py, K )
- 
+    print(Cnk_mat)
   }
-  print(Cnk_mat)
+  
   ## generating matrices for storing the draws:
   result <- list(Eta = matrix(0, M, K), Mu = array(0, dim = c(M, r, K)), Sigma = array(0, dim = c(M, 
                                                                                                   r, r, K)), S_alt_matrix = matrix(0L, M, N), Nk_matrix_alt = matrix(0L, M, K), Nk_view = matrix(0L, 
@@ -293,8 +293,8 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
     
     
     #### (3d): sample the hyperparameter e0 from p(e0|eta,a,b) via MH-step:
-    a_gam <- 10
-    b_gam <- a_gam  #e0~G(a_gam,b_gam*Kmax)
+    a_gam <- a_g
+    b_gam <- b_g  #e0~G(a_gam,b_gam*Kmax)
     # b_gam=1/K
     Kmax <- K
     const <- Kmax * b_gam

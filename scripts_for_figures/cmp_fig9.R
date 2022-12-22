@@ -17,8 +17,8 @@ library(cowplot)
 library(ggplot2)
 #---------- B) Specification of the simulation and prior parameters -----------------------------------------------
 
-ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_200.RData",
-            "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_40000.RData")
+ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20.RData",
+            "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_200.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData")
 
 #E[K_n] = 5
 #julia <- julia_setup()
@@ -36,7 +36,7 @@ comparison_n_2<- function(ds_list,K_, M_it, nburn, alpha_l){
   S_mat<- list()
   for (i in 1:length(ds_list)){
     data =  loadRData(ds_list[i])
-    pk[[i]] <- MCMC_function(data, e0=alpha_l[i]/K_, K=K_, M=M_it, burnin=nburn)
+    pk[[i]] <- MCMC_function(data, e0=alpha_l[i]/K_, K=K_, M=M_it, burnin=nburn)  #convertion from Dir to DPM 
     N[i]<- dim(data$y)[1]
     Eta_<- matrix(NA, nrow =dim(pk[[i]]$Eta)[1],ncol =  dim(pk[[i]]$Eta)[2] )
     for (j in 1:dim(pk[[i]]$Eta)[1]){ Eta_[j,] <- sort(pk[[i]]$Eta[j,],decreasing = TRUE)}
@@ -104,9 +104,7 @@ comparison_n_2<- function(ds_list,K_, M_it, nburn, alpha_l){
 }
 
 
-#alpha_list<- c(3.2,1.24, 0.81, 0.6)
-alpha_list<- c(1.24, 0.81, 0.6,0.56)
+alpha_list<- c(3.2,1.24, 0.81, 0.6)
 
-
-df_9<-comparison_n_2(ds_list,K_ = 10, M_it=20000 , nburn = 8000,alpha_l = alpha_list)
+df_9<-comparison_n_2(ds_list,K_ = 10, M_it=18000 , nburn =3000,alpha_l = alpha_list)
 save(df_9, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig9.RData")

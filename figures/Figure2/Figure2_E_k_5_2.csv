@@ -1,9 +1,9 @@
 "","Process_type","Type","sum(pkn * c(1:K_))"
-"1","Pkn_1","Posterior",4.27625
-"2","Pkn_1","Prior",7.534
-"3","Pkn_2","Posterior",3.3096875
-"4","Pkn_2","Prior",6.262
-"5","Pkn_3","Posterior",3.1240625
-"6","Pkn_3","Prior",5.876
-"7","Pkn_4","Posterior",3.1015
-"8","Pkn_4","Prior",5.21
+"1","Pkn_1","Posterior",3.91043333333333
+"2","Pkn_1","Prior",5.02
+"3","Pkn_2","Posterior",3.4447
+"4","Pkn_2","Prior",5.012
+"5","Pkn_3","Posterior",3.19283333333333
+"6","Pkn_3","Prior",5.041
+"7","Pkn_4","Posterior",3.0926
+"8","Pkn_4","Prior",5.006

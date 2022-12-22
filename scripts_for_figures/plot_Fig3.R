@@ -1,11 +1,7 @@
 #rm(list=ls()) 
-#setwd("~/Documents/GitHub/BNPconsistency/scripts_for_figures")
-## read sources
 require(e1071)
 require(mclust)
 require(MASS)
-require(bayesm)
-
 require(MCMCpack)
 require(mvtnorm)
 require(Runuran)
@@ -26,5 +22,4 @@ df_fig3_2 = plt_fig3(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_f
 df_fig3_3 = plt_fig3( input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig13.RData", c_vec =seq(0.01, 2, length.out = 30), alpha = 2.5,fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure3/" )
 df_fig3_4 = plt_fig3(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig14.RData", c_vec =seq(0.01, 2, length.out = 30), alpha = 3,fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure3/" )
 
-df_fig3_5 = plt_fig3(input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig9.RData", c_vec =seq(0.01, 2, length.out = 30), alpha = 3,fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure3/" )
 
