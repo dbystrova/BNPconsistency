@@ -121,7 +121,7 @@ plt_fig2<-function(input_file, c_v =c(0.1, 0.5, 1, 2), n_list= c(20,200,2000,200
   df_alpha_prior$type = rep("Prior", dim(df_alpha_prior)[1])
   R_alpha_list<- list()
   R_alpha_list <- lapply(fig_df$alpha[1:4], gelman_diag)
-  df_alpha = tibble(it = rep(1:length(R_alpha_list),4), alpha_post = flatten_dbl(fig_df$alpha[1:4]), label= c(rep(1,length(fig_df$alpha[[1]])),rep(2,length(fig_df$alpha[[2]])),rep(3,length(fig_df$alpha[[3]])),rep(4,length(fig_df$alpha[[4]])))) 
+  df_alpha = tibble(it = rep(1:length(fig_df$alpha[[1]]),4), alpha_post = flatten_dbl(fig_df$alpha[1:4]), label= c(rep(1,length(fig_df$alpha[[1]])),rep(2,length(fig_df$alpha[[2]])),rep(3,length(fig_df$alpha[[3]])),rep(4,length(fig_df$alpha[[4]])))) 
   df_alpha$type = rep("Posterior", dim(df_alpha)[1])
   df_alpha = rbind(df_alpha_prior, df_alpha)
   

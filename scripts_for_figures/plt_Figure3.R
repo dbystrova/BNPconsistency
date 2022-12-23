@@ -23,6 +23,13 @@ source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Utils_post.R")
 df_post_2<- function(c_vec, post , ind,  alpha, n=20){
   df_post_k= tibble(с= c_vec)
   df_post_k$val <- rep(NA, length(c_vec))
+  n_it = dim( post$eta[[1]])[1]
+  tokeep <- seq(2, n_it, 4)
+  for  (i in 1:4){
+    post$eta[[i]] =   post$eta[[i]][tokeep,]
+    post$mu[[i]] = post$mu[[i]][tokeep,,] 
+    post$sig[[i]] = post$sig[[i]][tokeep,,,] 
+  }
   for (i in 1:length(c_vec)){
     df_post_k$val[i] =  mean(round(apply_MTM(post$eta[[ind]],post$mu[[ind]],post$sig[[ind]], c =c_vec[i], n=n),3))
   }
@@ -35,6 +42,14 @@ df_post_2<- function(c_vec, post , ind,  alpha, n=20){
 df_post_3<- function(c_vec, post , ind,  alpha, n=20){
   df_post_k= tibble(с= c_vec)
   df_post_k$val <- rep(NA, length(c_vec))
+  n_it = dim( post$eta[[1]])[1]
+  tokeep <- seq(2, n_it, 4)
+  for  (i in 1:4){
+    post$eta[[i]] =   post$eta[[i]][tokeep,]
+    post$mu[[i]] = post$mu[[i]][tokeep,,] 
+    post$sig[[i]] = post$sig[[i]][tokeep,,,] 
+  }
+  
   for (i in 1:length(c_vec)){
     result_MTM = apply_MTM(post$eta[[ind]],post$mu[[ind]],post$sig[[ind]], c =c_vec[i], n=n)
     map = names(table(result_MTM)[which.max(table(result_MTM))])
