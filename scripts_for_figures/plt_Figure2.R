@@ -148,8 +148,8 @@ plt_fig2<-function(input_file, c_v =c(0.1, 0.5, 1, 2) , alpha_list, n_list, fig_
 }
 
 
-#data =  loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_40000.RData")
-#K_ = 10
-#pk <- MCMC_function(data, e0=0.56/K_, K=K_, M=M_it, burnin=nburn)
-#M_it = 15000
-#nburn = 5000
+data =  loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_40000.RData")
+K_ = 10
+pk <- MCMC_function(data, e0=0.56/K_, K=10, M=18000, burnin=3000)
+save(pk, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig9_40.RData")
+
