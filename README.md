@@ -1,7 +1,7 @@
 Supporting information for the article: Bayesian mixture models (in)consistency for the
 number of clusters. 
 
-##Abstract
+## Abstract
 
 Bayesian nonparametric mixture models are common for modeling complex data. 
 While these models are well-suited for density estimation, their application for clustering has some limitations. Recent results proved posterior inconsistency of the number of clusters when the true number of clusters is finite for the Dirichlet process and Pitman--Yor process mixture models. 
