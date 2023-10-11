@@ -1,5 +1,7 @@
-Supporting information for the article: Bayesian mixture models (in)consistency for the
-number of clusters. 
+R code to replicate figures of the article: Bayesian mixture models (in)consistency for the number of clusters. 
+https://arxiv.org/abs/2210.14201
+
+Joint work by Louise Alamichel, Daria Bystrova, Julyan Arbel, Guillaume Kon Kam King.
 
 ## Abstract
 
