@@ -23,7 +23,7 @@ source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Utils_post.R")
 
 #input_file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig5.RData"
 
-plt_fig1<-function(input_file, c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure1/" ){
+plt_fig1<-function(input_file, c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure1/" , Sigma_coef = NULL){
   
 # fig_path = "../figures/Figure1/"
  fig_df <- loadRData(input_file)
@@ -42,9 +42,16 @@ plt_fig1<-function(input_file, c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents
     scale_color_discrete(name = TeX(sprintf('$n$')) ,labels=unname(TeX(c(sprintf('$N$=%3.f',n_vec[1]),sprintf('$N$=%3.f',n_vec[2]),sprintf('$N$=%3.f',n_vec[3]),sprintf('$N$=%3.f',n_vec[4])))))
   p_l
   
-  pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_1_py.pdf" ))
+  if (is.null(Sigma_coef)){
+  pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_1.pdf" ))
   plot(p_l)
   dev.off()
+  }
+  else{
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"R_coef_",Sigma_coef,"_1.pdf" ))
+    plot(p_l)
+    dev.off()
+  }
   
   julia <- julia_setup()
   julia_library("GibbsTypePriors")
@@ -84,9 +91,15 @@ plt_fig1<-function(input_file, c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents
     scale_linetype_manual(name = "Distribution",values = c(1, 2),guide = guide_legend(override.aes = list(linetype = c(1, 2),color = "black") ) )+
     facet_wrap(~Process_type,labeller = pkn_names)
   p_h
-  pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_2.pdf" ))
-  plot(p_h)
-  dev.off()
+  if (is.null(Sigma_coef)){
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_2.pdf" ))
+    plot(p_h)
+    dev.off()
+    }else{
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"R_coef_",Sigma_coef,"_2.pdf" ))
+    plot(p_h)
+    dev.off()
+  }
   
   ### Sampe plot without title 
   p_h2 <- ggplot(df_merged, aes(K,pkn,color =Process_type))+geom_bar(aes(linetype=Type),size = 0.7, stat="identity",alpha =0.0, position = "identity")+
@@ -97,9 +110,16 @@ plt_fig1<-function(input_file, c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents
     scale_linetype_manual(name = "Distribution",values = c(1, 2),guide = guide_legend(override.aes = list(linetype = c(1, 2),color = "black") ) )+
     facet_wrap(~Process_type,labeller = pkn_names)
   p_h2
-  pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_2_.pdf" ))
-  plot(p_h2)
-  dev.off()
+
+    if (is.null(Sigma_coef)){
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_2_.pdf" ))
+    plot(p_h2)
+    dev.off()
+    }else{
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"R_coef_",Sigma_coef,"_2_.pdf" ))
+    plot(p_h2)
+    dev.off()
+  }
   
   
   E_k<- df_merged %>% group_by(Process_type,Type) %>% summarize(sum(pkn *c(1:K_)))
@@ -128,9 +148,17 @@ plt_fig1<-function(input_file, c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents
     theme_minimal()+  ylim(0,0.65)+facet_wrap(~W_,labeller = pkn_names)
   pw
   
-  pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_3.pdf" ))
-  plot(pw)
-  dev.off()
+
+  
+  if (is.null(Sigma_coef)){
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_3.pdf" ))
+    plot(pw)
+    dev.off()
+  }else{
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"R_coef_",Sigma_coef,"_3.pdf" ))
+    plot(pw)
+    dev.off()
+  }
   
   pw2 <- ggplot(weights_fig_thin, aes(x=K, y=weights, group =K, fill = n )) + ylab("Weights")+xlab(TeX('$K_n$'))+scale_x_continuous(breaks = c(1,3,7,10), limits = c(0,11))+
     geom_boxplot(alpha=0.5) +scale_fill_viridis(discrete= "TRUE", begin = 0, end = 0.9,option = "D", name = TeX(sprintf('$n$')) ,labels=unname(TeX(c(sprintf('$n$ = %3.f',n_vec[1]),sprintf('$n$ = %3.f',n_vec[2]),sprintf('$n$ = %3.f',n_vec[3]),sprintf('$n$ = %3.f',n_vec[4])))))+
@@ -138,9 +166,16 @@ plt_fig1<-function(input_file, c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents
     theme_minimal()+  ylim(0,0.65)+facet_wrap(~W_,labeller = pkn_names)
   pw2
   
-  pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_3_.pdf" ))
-  plot(pw2)
-  dev.off()
+ 
+  if (is.null(Sigma_coef)){
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_3_.pdf" ))
+    plot(pw2)
+    dev.off()
+  }else{
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"R_coef_",Sigma_coef,"_3_.pdf" ))
+    plot(pw2)
+    dev.off()
+  }
   
   ### MTM 
   
@@ -175,9 +210,17 @@ plt_fig1<-function(input_file, c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents
     facet_wrap(~N,labeller = pkn_names)
   pm
   
-  pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_4.pdf" ))
-  plot(pm)
-  dev.off()
+  if (is.null(Sigma_coef)){
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_4.pdf" ))
+    plot(pm)
+    dev.off()
+  }else{
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"R_coef_",Sigma_coef,"_4.pdf" ))
+    plot(pm)
+    dev.off()
+  }
+  
+ 
   
   pm2 <- ggplot(df_fin_bar, aes(pkn,pkn_dens,color =Process_type, linetype = Process_type))+ geom_bar(aes(linetype=Process_type),size = 0.7, stat="identity",alpha =0.0, position = "identity", fill= "white")+
     geom_vline(xintercept=3,  linetype="dashed")+
@@ -189,9 +232,15 @@ plt_fig1<-function(input_file, c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents
     facet_wrap(~N,labeller = pkn_names)
   pm2
   
-  pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_4_.pdf" ))
-  plot(pm2)
-  dev.off()
-#  write.table(df_MTM, file =paste0(fig_path,"Posterior_MTM_alpha_",fig_df_mut$alpha[1],".csv"), sep = ",", col.names = NA,
-#              qmethod = "double")
-}
+  if (is.null(Sigma_coef)){
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"_4_.pdf" ))
+    plot(pm2)
+    dev.off()
+  }else{
+    pdf(paste0(fig_path,"Figure1_alpha_",fig_df_mut$alpha[1],"R_coef_",Sigma_coef,"_4_.pdf" ))
+    plot(pm2)
+    dev.off()
+    }
+  
+  
+ }

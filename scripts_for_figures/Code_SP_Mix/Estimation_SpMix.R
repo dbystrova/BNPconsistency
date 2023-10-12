@@ -91,7 +91,7 @@ compute_matrix<- function(n, sigma, K){
 
 
 MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
-                                                       g0, G0, b0, B0k, nu, lam_0, M, burnin, c_proposal, priorOnE0, lambda,seed = 1, sigma_py =0, a_g = 10,b_g =10) {
+                                                       g0, G0, b0, B0k, nu, lam_0, M, burnin, c_proposal, priorOnE0, lambda,seed = 1, sigma_py =0, a_g = 10,b_g =10, fixedSigma=NULL) {
   
   set.seed(seed)
   print(seed)
@@ -99,6 +99,7 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
   N <- nrow(y)  #number of observations
   r <- ncol(y)  #number of dimensions
   ##change!!!!
+  
   R <- apply(y, 2, function(x) diff(range(x)))
   
   ## initializing current values:
@@ -117,7 +118,12 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
   #B_j <- B_0
   B_j <- lam_0
   
-  C0_j <- C0_0
+  if (is.null(fixedSigma)){
+    C0_j <- C0_0
+  }else{
+    C0_j <- fixedSigma
+  }
+  
   #invB0_j <- solve(B0)
   invB0_j <- solve(B0k)
   b0_j <- b0
@@ -280,8 +286,14 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
     
     
     #### (3b): sample the hyperparameter C0 conditionally on sigma:
-    C0_j <- rwishart(2 * gn, 0.5 * chol2inv(chol(G0 + rowSums(invsigma_j, dims = 2))))$W  #from package 'bayesm'
+   # C0_j <- rwishart(2 * gn, 0.5 * chol2inv(chol(G0 + rowSums(invsigma_j, dims = 2))))$W  #from package 'bayesm'
     
+    
+    if (is.null(fixedSigma)){
+      C0_j <- rwishart(2 * gn, 0.5 * chol2inv(chol(G0 + rowSums(invsigma_j, dims = 2))))$W  #from package 'bayesm'
+    }else{
+      C0_j <- fixedSigma
+    }
     
     
     #### (3c):assuming that the mean appearing in the normal prior on the group mean mu_k follows a

@@ -21,10 +21,10 @@ ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3
             "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData")
 
 
-df_4 <-comparison_n(ds_list, alpha = 0.01,K_ = 10, M_it= 18000 , nburn = 3000)
+df_4 <-comparison_n(ds_list, alpha = 0.01,K_ = 10, M_it= 50000 , nburn = 25000)
 
 
-save(df_4, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig4.RData")
+save(df_4, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig4_2.RData")
 
 
 

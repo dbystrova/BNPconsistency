@@ -2,6 +2,7 @@
 ## read sources
 source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Code_SP_Mix/Estimation_SpMix.R")
 source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Gibbs_sampling_function.R")
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/plt_Fig5.R")
 
 require(tidyr)
 require(e1071)
@@ -18,87 +19,23 @@ library(ggplot2)
 #---------- B) Specification of the simulation and prior parameters -----------------------------------------------
 
 
-ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_200.RData",
-            "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData")
+#ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_200.RData",
+#            "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData")
 
 
-data =  loadRData(ds_list[1])
+ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_200.RData")
+
+
+#data =  loadRData(ds_list[1])
 
 
 
-df <- MCMC_function(data, e0=1, K=10, M=10000, burnin=2000,seed_ = 1000, priorOnE0 = FALSE, sigma_py = 0.5) 
+#df <- MCMC_function(data, e0=1, K=10, M=10000, burnin=2000,seed_ = 1000, priorOnE0 = FALSE, sigma_py = 0.5) 
 
-df_200 = df
-df_20 = df
+#df_200 = df
+#df_20 = df
 
-save(df_20, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_figpy_0.RData")
-
-pk<- list()
-N<- c()
-R_h <- c()
-W_non_sorted <- list()
-W <- list()
-Mu_mat <- list()
-S_mat<- list()
-pk[[1]] = df_20
-pk[[2]]= df_200
-N[1]<- 20
-N[2]<- 200
-Eta_<- matrix(NA, nrow =dim(pk[[2]]$Eta)[1],ncol =  dim(pk[[2]]$Eta)[2] )
-for (j in 1:dim(pk[[2]]$Eta)[2]){ Eta_[j,] <- sort(pk[[2]]$Eta[j,],decreasing = TRUE)}
-W[[2]] <- Eta_
-W_non_sorted[[2]] <- pk[[2]]$Eta
-Mu_mat[[2]] <- pk[[2]]$Mu
-S_mat[[2]] <-pk[[2]]$Sigma
-
-df_ = tibble(K= 1:K_)
-df2_ = tibble(K= 1:K_)
-df3_ = tibble(K= 1:K_)
-df4_ = tibble(K= 1:K_)
-for (j in 1:2){
-  name_ <- paste("Pkn_", j, sep = "")
-  name2_ <- paste("Rh_", j, sep = "")
-  name3_ <- paste("N_", j, sep = "")
-  name4_ <- paste("W_", j, sep = "")
-  df_[,name_]<- pk[[j]]$p_k
-  df2_[,name2_]<- rep(pk[[j]]$ll_rhat,length(pk[[j]]$p_k))
-  df3_[,name3_]<- rep(N[j],length(pk[[j]]$p_k))
-  df4_[,name4_]<- rep(N[j],length(pk[[j]]$p_k))
-}
-df = df_%>% gather(Process_type, density,  paste("Pkn_", 1, sep = ""):paste("Pkn_", length(ds_list), sep = ""))
-df2 = df2_%>% gather(Rh, Rh_val,  paste("Rh_", 1, sep = ""):paste("Rh_", length(ds_list), sep = ""))
-df3 = df3_%>% gather(N_, N_val,  paste("N_", 1, sep = ""):paste("N_", length(ds_list), sep = ""))
-df4 = df4_%>% gather(W_, W_val,  paste("W_", 1, sep = ""):paste("W_", length(ds_list), sep = ""))
-W_df <- do.call(cbind, W)
-df4_post <- cbind(df4,t(W_df))
-
-df4_post_ <- gather(df4_post, key = "it",value="weights", 4: dim(df4_post)[2])
-
-df$alpha = c(rep(alpha,dim(df_)[1]*length(ds_list))) 
-df$Rh = df2$Rh_val
-df$N =df3$N_val
-
-df_l_ = tibble(K= 1:((M_it -nburn)*2))
-df2_l_ = tibble(K= 1:((M_it - nburn)*2))
-df3_l_ = tibble(K= 1:((M_it - nburn)*2))
-for (j in 1:length(ds_list)){
-  name_ <- paste("P_", j, sep = "")
-  name2_ <- paste("Rh_", j, sep = "")
-  name3_ <- paste("N_", j, sep = "")
-  df_l_[,name_]<- pk[[j]]$p_k_all
-  df2_l_[,name2_]<- rep(pk[[j]]$ll_rhat,length(pk[[j]]$p_k_all))
-  df3_l_[,name3_]<- rep(N[j],length(pk[[j]]$p_k_all))
-}
-df_l = df_l_%>% gather(Process_type, density,  paste("P_", 1, sep = ""):paste("P_", length(ds_list), sep = ""))
-df_l2 = df2_l_%>% gather(Rh, Rh_val,  paste("Rh_", 1, sep = ""):paste("Rh_", length(ds_list), sep = ""))
-df_l3 = df3_l_%>% gather(N_, N_val,  paste("N_", 1, sep = ""):paste("N_", length(ds_list), sep = ""))
-df_l$alpha = c(rep(alpha,(M_it -nburn)*2*length(ds_list))) 
-df_l$Rh = df_l2$Rh_val
-df_l$N =df_l3$N_val
-
-
-df_obj = list(line = df, hist =df_l, weights = df4_post_, eta = W_non_sorted, mu = Mu_mat, sig = S_mat)
-
+#save(df_20, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_figpy_0.RData")
 
 
 
@@ -147,13 +84,15 @@ df4_post <- cbind(df4,t(W_df))
 
 df4_post_ <- gather(df4_post, key = "it",value="weights", 4: dim(df4_post)[2])
 
-df$alpha = c(rep(alpha,dim(df_)[1]*length(ds_list))) 
+df$alpha_py = c(rep(alpha_py,dim(df_)[1]*length(ds_list))) 
+df$sigma_py = c(rep(sigmapy,dim(df_)[1]*length(ds_list))) 
+
 df$Rh = df2$Rh_val
 df$N =df3$N_val
 
-df_l_ = tibble(K= 1:((M_it -nburn)*2))
-df2_l_ = tibble(K= 1:((M_it - nburn)*2))
-df3_l_ = tibble(K= 1:((M_it - nburn)*2))
+df_l_ = tibble(it= 1:((M_it -nburn)*2))
+df2_l_ = tibble(it= 1:((M_it - nburn)*2))
+df3_l_ = tibble(it= 1:((M_it - nburn)*2))
 for (j in 1:length(ds_list)){
   name_ <- paste("P_", j, sep = "")
   name2_ <- paste("Rh_", j, sep = "")
@@ -165,18 +104,34 @@ for (j in 1:length(ds_list)){
 df_l = df_l_%>% gather(Process_type, density,  paste("P_", 1, sep = ""):paste("P_", length(ds_list), sep = ""))
 df_l2 = df2_l_%>% gather(Rh, Rh_val,  paste("Rh_", 1, sep = ""):paste("Rh_", length(ds_list), sep = ""))
 df_l3 = df3_l_%>% gather(N_, N_val,  paste("N_", 1, sep = ""):paste("N_", length(ds_list), sep = ""))
-df_l$alpha = c(rep(alpha,(M_it -nburn)*2*length(ds_list))) 
+df_l$alpha_py = c(rep(alpha_py,(M_it -nburn)*2*length(ds_list))) 
+df_l$sigma_py = c(rep(sigmapy,(M_it -nburn)*2*length(ds_list))) 
 df_l$Rh = df_l2$Rh_val
 df_l$N =df_l3$N_val
-return(list(line = df, hist =df_l, weights = df5_post_, eta = W_non_sorted, mu = Mu_mat, sig = S_mat))
-
-
+return(list(line = df, hist =df_l, weights = df4_post_, eta = W_non_sorted, mu = Mu_mat, sig = S_mat))
 }
 
-df_obj = list(line = df, hist =df_l, weights = df5_post_, eta = W_non_sorted, mu = Mu_mat, sig = S_mat)
 
-save(df_obj, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_figpy_comp.RData")
+df <- comparison_py(ds_list,K_=10, M_it=15000, nburn=3000, alpha_py=0.1,sigmapy = 0.5)
+save(df, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_figpy_01_05.RData")
 
-df <- comparison_py(ds_list,K_=10, M_it=1000, nburn=200, alpha_py=1,sigmapy = 0.25)
-  
+plt_fig1("~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_figpy_01_05.RData", c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure5/" )
+ 
+ 
+df <- comparison_py(ds_list,K_=10, M_it=15000, nburn=3000, alpha_py=1.0,sigmapy = 0.5)
+save(df, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_figpy_1_05.RData")
+
+plt_fig1("~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_figpy_1_05.RData", c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure5/" )
+
+
+
+df <- comparison_py(ds_list,K_=5, M_it=15000, nburn=3000, alpha_py=0.1,sigmapy = 0.5)
+save(df, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_figpy_01_05_K5.RData")
+
+plt_fig1("~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_figpy_01_05.RData", c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure5_K5/" )
+
+df <- comparison_py(ds_list,K_=5, M_it=15000, nburn=3000, alpha_py=1.0,sigmapy = 0.5)
+save(df, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_figpy_1_05_K5.RData")
+
+plt_fig1("~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_figpy_1_05_K5.RData", c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Documents/GitHub/BNPconsistency/figures/Figure5_K5/" )
 

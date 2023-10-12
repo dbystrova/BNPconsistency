@@ -1,0 +1,98 @@
+---
+title: "Simulation for Sigma"
+output: html_document
+date: "2023-10-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Code_SP_Mix/Random_SpMix.R")
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Code_SP_Mix/Estimation_SpMix.R")
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Code_SP_Mix/Identification_SpMix.R")
+source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Gibbs_sampling_function.R")
+
+```
+
+## R Markdown
+
+Simulation for the prior distribution of the $\Sigma_k$.  We used the following priors for the covariance matrix, with parameters
+$$ \Sigma_k^{-1} \sim \mathcal{W}(c_0, C_0), \quad C_0 \sim \mathcal{W}(g_0, G_0)$$
+with $c_0= 2.5 +\frac{r-1}{2}$, $g_0= 0.5 +\frac{r-1}{2}$, $G_0 = \frac{100g_0}{c_0}\text{diag}(1/R_1^2,\ldots,1/R_r^2)$, where $r$ is dimension of $\Sigma$ matrix, and $R_j$ is the range of the data in each dimension. 
+
+```{r data}
+ds_list<- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_200.RData",
+            "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData","~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_20000.RData")
+
+
+data =  loadRData(ds_list[4])
+
+y <- as.matrix(data$y)
+
+```
+
+
+```{r fun}
+compute_Sigma<- function(M, coef_R, y){
+r <- length(y[1, ])
+N <- length(y[, 1])
+Sigma_array = array(0, dim = c(M, r, r))
+Inv_Sigma_array = array(0, dim = c(M, r, r))
+C0_array = array(0, dim = c(M, r, r))
+C0_j <- matrix(0, r, r)
+Sigma_j <- matrix(0, r, r)
+
+R <- apply(y, 2, function(x) diff(range(x)))
+
+ ## prior on Sigma_k [modification for sensitivity analysis with R/5, R/10, R/20]
+c0 <- 2.5 + (r - 1)/2
+C0 <- 0.75 * cov(y)
+g0 <- 0.5 + (r - 1)/2
+R_mod = R*coef_R
+G0 <- 100 * g0/c0 * diag((1/R_mod^2))
+
+for (i in 1:M){
+  C0_array[i,,] <- rwishart(2 * g0, 0.5 * chol2inv(chol(G0)))$W  #from package 'bayesm'
+  sig <- rwishart(2 * c0, 0.5 * chol2inv(chol(C0_array[i,,])))  #attention: rwishart(nu,v)(Rossi)=> nu=2*c0,v=0.5*C0, wishart(c0,C0) (FS)
+  Sigma_array[i, , ] <- sig$IW
+  Inv_Sigma_array[i, , ] <- sig$W
+}
+ Sig_mean = apply(Sigma_array, c(2,3), mean)
+ C0_mean = apply(C0_array, c(2,3), mean)
+ Inv_Sigma_mean = apply(Inv_Sigma_array, c(2,3), mean)
+return(list(S=  Sig_mean,C0 = C0_mean, InvS = Inv_Sigma_mean ))  
+
+}
+
+```
+
+
+# R = 1
+```{r R1, echo=TRUE}
+Mat = compute_Sigma(M=10000, coef_R = 1, y)
+
+Mat$S
+Mat$C0
+Mat$InvS
+```
+# R = 1/5
+```{r R5, echo=TRUE}
+Mat5 = compute_Sigma(M=10000, coef_R = 1/5, y)
+
+Mat5$S
+Mat5$C0
+Mat5$InvS
+```
+# R = 1/20
+```{r R20, echo=TRUE}
+Mat20 = compute_Sigma(M=10000, coef_R = 1/20, y)
+
+Mat20$S
+Mat20$C0
+Mat20$InvS
+```
+
+
+```{r data}
+det(Mat5$S)
+det(Mat20$S)
+```

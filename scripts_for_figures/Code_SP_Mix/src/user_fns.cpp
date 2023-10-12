@@ -34,6 +34,9 @@ double reccursive_Cnk(const int n, const int k, const double sigma) {
 }
 
 
+// memo version 
+
+
 
 
 double log_v_pdf_C(const Rcpp:: NumericVector& x, const Rcpp::List& pars){
@@ -47,8 +50,8 @@ double log_v_pdf_C(const Rcpp:: NumericVector& x, const Rcpp::List& pars){
   for (int j=0; j<k;++j){
     double val = 0;
     for (int l=1; l<(nk_vec[j]+1); ++l){
-      val0 = pow(x[0]/H, l) * reccursive_Cnk(nk_vec[j], l, sigma);
-      val += val0;
+      val0 = l*(log(x[0]) - log(H)) + log(reccursive_Cnk(nk_vec[j], l, sigma));
+      val += exp(val0);
     }
     sum  += log(val);
   }

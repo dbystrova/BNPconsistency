@@ -17,9 +17,10 @@ loadRData <- function(fileName){
 
 l2norm_MV_gaussian = function(theta.j, theta.i){
   l2_mu = sum((theta.j[[1]] -theta.i[[1]] )^2)
-  l2_Sigma = sqrt(sum((theta.j[[2]] -theta.i[[2]] )^2))
+  #l2_Sigma = sqrt(sum((theta.j[[2]] -theta.i[[2]] )^2))
   #l2_Sigma =norm(theta.j[[2]] -theta.i[[2]],"2")^2
-  l2_Sigma = sum(((theta.j[[2]] - theta.i[[2]])[upper.tri(theta.j[[2]] -theta.i[[2]], diag = TRUE)])^2)
+  #l2_Sigma = sum(((theta.j[[2]] - theta.i[[2]])[upper.tri(theta.j[[2]] -theta.i[[2]], diag = TRUE)])^2)
+  l2_Sigma =norm(theta.j[[2]] - theta.i[[2]],"F")^2
   return(sqrt(l2_mu + l2_Sigma ))
 }
 
@@ -61,18 +62,24 @@ MTM<- function(G, w_n, c){
     i = i +1
   }
   
-#stage 2
 th =theta.k[tau]
 p = p_new[tau]
 
-A = which(p > (c*w_n)^2)
-N =  which(p <= (c*w_n)^2)
+sorted_weights  = sort(p, decreasing = TRUE, index.return=TRUE)
+p_sorted = p[sorted_weights$ix]
+th_sorted = th[sorted_weights$ix]
+#stage 2
+
+
+
+A = which(p_sorted > (c*w_n)^2)
+N =  which(p_sorted <= (c*w_n)^2)
 
 for(i in A){
   for(j in A){
     if (j < i){
     #  print(p[i]*(l2norm_MV_gaussian(th[[i]],th[[j]]))^2)
-      if (p[i]*(l2norm_MV_gaussian(th[[i]],th[[j]]))^2 <= (c*w_n)^2){
+      if (p_sorted[i]*(l2norm_MV_gaussian(th_sorted[[i]],th_sorted[[j]]))^2 <= (c*w_n)^2){
         N = c(N, i)
         A = A[-i]
     #    print(A)
@@ -85,14 +92,14 @@ for(i in N){
   v=0
   ind_min = 1
   for (j in A){
-    if (v<= l2norm_MV_gaussian(th[[j]],th[[i]])){
-    v = l2norm_MV_gaussian(th[[j]],th[[i]])
+    if (v<= l2norm_MV_gaussian(th_sorted[[j]],th_sorted[[i]])){
+    v = l2norm_MV_gaussian(th_sorted[[j]],th_sorted[[i]])
     ind_min = j
    }
   }
-  p[ind_min] = p[ind_min] + p[i] 
+  p_sorted[ind_min] = p_sorted[ind_min] + p_sorted[i] 
  }
-return (list(p=p[A], th=th[A]))
+return (list(p=p_sorted[A], th=th_sorted[A]))
 }
 
 
