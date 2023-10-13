@@ -85,9 +85,6 @@ compute_matrix<- function(n, sigma, K){
   }
   return (Mat)
 }
-#estGibbs_2 <- MultVar_NormMixt_Gibbs_IndPriorNormalgamma(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
- #                                                        g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = priorOnE0, lambda = FALSE,seed =seed_+1, sigma_py =  sigma_py)
-
 
 
 MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
@@ -98,7 +95,7 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
   K <- ncol(mu_0)  #number of components 
   N <- nrow(y)  #number of observations
   r <- ncol(y)  #number of dimensions
-  ##change!!!!
+  ##change
   
   R <- apply(y, 2, function(x) diff(range(x)))
   
@@ -172,8 +169,12 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
   ### constant parameters for every iteration:
   p_gig <- nu - K/2
   a_gig <- 2 * nu
-  gn <- g0 + K * c0
   
+  if (is.null(fixedSigma)){
+    gn <- g0 + K * c0
+   }else{
+    print("fixed Sigma")
+  }
   
   
   
@@ -295,7 +296,7 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
       C0_j <- fixedSigma
     }
     
-    
+
     #### (3c):assuming that the mean appearing in the normal prior on the group mean mu_k follows a
     #### improper prior p(b0)=const, sample b0 from N(1/K*sum(mu_i);1/K*B0 )
     B0 <- diag((R^2) * B_j)
@@ -343,10 +344,17 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
     mixlik_j <- sum(log(rowSums(mat_neu)))
     
     ## evaluating the mixture prior:
-    mixprior_j <- log(MCMCpack::ddirichlet(as.vector(eta_j), rep(e0, K))) + sum(dmvnorm(t(mu_j), 
+    if (is.null(fixedSigma)){
+        mixprior_j <- log(MCMCpack::ddirichlet(as.vector(eta_j), rep(e0, K))) + sum(dmvnorm(t(mu_j), 
                                                                                         b0, diag((R^2) * B_j), log = TRUE)) + sum(sapply(1:K, function(k) lndIWishart(2 * c0, 
                                                                                                                                                                       0.5 * C0_j, sigma_j[, , k]))) + lndIWishart(2 * g0, 0.5 * G0, C0_j) + dgamma(e0, shape = a_gam, 
                                                                                                                                                                                                                                                    scale = 1/b_gam, log = TRUE) + sum(dgamma(B_j, shape = nu, scale = 1/nu, log = TRUE))
+    }else{
+      mixprior_j <- log(MCMCpack::ddirichlet(as.vector(eta_j), rep(e0, K))) + sum(dmvnorm(t(mu_j), 
+                                                                                          b0, diag((R^2) * B_j), log = TRUE)) + sum(sapply(1:K, function(k) lndIWishart(2 * c0, 
+                                                                                                                                                                        0.5 * C0_j, sigma_j[, , k])))  + dgamma(e0, shape = a_gam, 
+                                                                                                                                                                                                                scale = 1/b_gam, log = TRUE) + sum(dgamma(B_j, shape = nu, scale = 1/nu, log = TRUE))
+    }
     
     ## evaluating the nonnormalized complete-data posterior:
     cd <- c()

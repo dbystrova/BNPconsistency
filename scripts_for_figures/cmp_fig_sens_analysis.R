@@ -8,7 +8,6 @@ source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Gibbs_sampling_fun
 
 require(tidyr)
 require(e1071)
-require(MASS)
 require(MCMCpack)
 require(mvtnorm)
 require(Runuran)
@@ -40,7 +39,14 @@ ds_list_short <- c("~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_da
                              "~/Documents/GitHub/BNPconsistency/scripts_for_figures/sim_data/GM_3_2000.RData")
 
 
-df_sens_fixed <-comparison_sens(ds_list_short, alpha = 0.01,K_ = 10, M_it= 20000 , nburn = 10000, coef_R =1, fixS  = TRUE)
-save(df_sens_fixed, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig_sens_fixed1.RData")
+df_sens_fixed_1 <-comparison_sens(ds_list_short, alpha = 0.01,K_ = 10, M_it= 20000 , nburn = 10000, coef_R =1, fixS  = TRUE)
+save(df_sens_fixed_1, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig_sens_fixed1.RData")
+
+df_sens_fixed_5 <-comparison_sens(ds_list_short, alpha = 0.01,K_ = 10, M_it= 20000 , nburn = 10000, coef_R =1/5, fixS  = TRUE)
+save(df_sens_fixed_5, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig_sens_fixed5.RData")
+
+
+df_sens_fixed_20 <-comparison_sens(ds_list_short, alpha = 0.01,K_ = 10, M_it= 20000 , nburn = 10000, coef_R =1/20, fixS  = TRUE)
+save(df_sens_fixed_20, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_fig_sens_fixed20.RData")
 
 

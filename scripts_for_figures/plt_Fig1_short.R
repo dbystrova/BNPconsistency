@@ -28,7 +28,12 @@ plt_fig1_short<-function(input_file, c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Doc
   # fig_path = "../figures/Figure1/"
   fig_df <- loadRData(input_file)
   
- 
+  fig_df_mut <- fig_df$line%>%group_by(Process_type,N)%>%mutate(pkn =density/sum(density))
+  
+  K_ = max(fig_df_mut$K)
+  n_vec = c( fig_df_mut$N[1],fig_df_mut$N[(max(fig_df_mut$K)+1)],fig_df_mut$N[(2*max(fig_df_mut$K)+1)])
+  alpha_val = fig_df_mut$alpha[1]
+  
   
   julia <- julia_setup()
   julia_library("GibbsTypePriors")

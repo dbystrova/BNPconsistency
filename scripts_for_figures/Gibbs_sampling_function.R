@@ -71,7 +71,6 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000, priorOnE0 = 
   G0 <- 100 * g0/c0 * diag((1/R_mod^2))
   }else{
       c0 <- 2.5 + (r - 1)/2
-      R_mod = R*Sigma_prior$coef
       C0 <- (c0/100)* diag((R_mod^2))
   }
 
