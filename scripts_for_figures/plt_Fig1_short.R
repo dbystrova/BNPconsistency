@@ -158,3 +158,6 @@ plt_fig1_short<-function(input_file, c_vec =c(0.1, 0.5, 1, 2) , fig_path= "~/Doc
   
   
 }
+
+df_
+

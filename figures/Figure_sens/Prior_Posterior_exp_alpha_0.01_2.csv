@@ -1,7 +1,9 @@
 "","Process_type","Type","sum(pkn * c(1:K_))"
-"1","Pkn_1","Posterior",2.0683
+"1","Pkn_1","Posterior",3.33085
 "2","Pkn_1","Prior",1.302
-"3","Pkn_2","Posterior",3.054175
+"3","Pkn_2","Posterior",3.04495
 "4","Pkn_2","Prior",1.501
-"5","Pkn_3","Posterior",3.02345
+"5","Pkn_3","Posterior",3.0269
 "6","Pkn_3","Prior",1.694
+"7","Pkn_4","Posterior",3.07785
+"8","Pkn_4","Prior",1.886
