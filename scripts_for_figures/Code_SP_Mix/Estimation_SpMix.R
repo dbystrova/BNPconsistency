@@ -85,18 +85,20 @@ compute_matrix<- function(n, sigma, K){
   }
   return (Mat)
 }
+#estGibbs_2 <- MultVar_NormMixt_Gibbs_IndPriorNormalgamma(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
+#                                                        g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = priorOnE0, lambda = FALSE,seed =seed_+1, sigma_py =  sigma_py)
+
 
 
 MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
-                                                       g0, G0, b0, B0k, nu, lam_0, M, burnin, c_proposal, priorOnE0, lambda,seed = 1, sigma_py =0, a_g = 10,b_g =10, fixedSigma=NULL) {
+                                                       g0, G0, b0, B0k, nu, lam_0, M, burnin, c_proposal, priorOnE0, lambda,seed = 1, sigma_py =0, a_g = 10,b_g =10) {
   
   set.seed(seed)
   print(seed)
   K <- ncol(mu_0)  #number of components 
   N <- nrow(y)  #number of observations
   r <- ncol(y)  #number of dimensions
-  ##change
-  
+  ##change!!!!
   R <- apply(y, 2, function(x) diff(range(x)))
   
   ## initializing current values:
@@ -115,14 +117,13 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
   #B_j <- B_0
   B_j <- lam_0
   
-  if (is.null(fixedSigma)){
-    C0_j <- C0_0
-  }else{
-    C0_j <- fixedSigma
-  }
-  
+  C0_j <- C0_0
   #invB0_j <- solve(B0)
-  invB0_j <- solve(B0k)
+  if(r==1){
+    invB0_j <- 1/B0k
+  }else{
+    invB0_j <- solve(B0k)
+  }
   b0_j <- b0
   Nk_j <- tabulate(S_j, K)
   print(Nk_j)
@@ -169,12 +170,8 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
   ### constant parameters for every iteration:
   p_gig <- nu - K/2
   a_gig <- 2 * nu
+  gn <- g0 + K * c0
   
-  if (is.null(fixedSigma)){
-    gn <- g0 + K * c0
-   }else{
-    print("fixed Sigma")
-  }
   
   
   
@@ -192,7 +189,11 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
     
     ### relevant component specific quantities:
     mean_yk <- matrix(0, r, K)
-    mean_yk <- sapply(1:K, function(k) colMeans(y[S_j == k, , drop = FALSE]))
+    if(r==1){
+      mean_yk[,1:10] <- sapply(1:K, function(k) colMeans(y[S_j == k, , drop = FALSE]))
+    }else{
+      mean_yk <- sapply(1:K, function(k) colMeans(y[S_j == k, , drop = FALSE]))
+    }
     if (sum(is.na(mean_yk)) > 0) {
       ## to catch the case if a group is empty: NA values are substituted by zeros
       mean_yk[is.na(mean_yk)] <- 0
@@ -228,17 +229,27 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
       } else {
         Ck[, , k] <- C0_j
       }
-      sig <- rwishart(2 * ck[k], 0.5 * chol2inv(chol(Ck[, , k])))  #attention: rwishart(nu,v)(Rossi)=> nu=2*c0,v=0.5*C0, wishart(c0,C0) (FS)
-      sigma_j[, , k] <- sig$IW
-      invsigma_j[, , k] <- sig$W
-      det_invsigma_j[k] <- det(invsigma_j[, , k])
+      if(r==1){
+        sig <- rgamma(1, 2 * ck[k], 0.5/Ck[, , k])
+        sigma_j[, , k] <- 1/sig
+        invsigma_j[, , k] <- sig
+      }else{
+        sig <- rwishart(2 * ck[k], 0.5  * chol2inv(chol(Ck[, , k])))  #attention: rwishart(nu,v)(Rossi)=> nu=2*c0,v=0.5*C0, wishart(c0,C0) (FS)
+        sigma_j[, , k] <- sig$IW
+        invsigma_j[, , k] <- sig$W
+        det_invsigma_j[k] <- det(invsigma_j[, , k])
+      }
     }
     
     
     #### (1c): Sample mu_j for each component k:
     Bk <- array(0, dim = c(r, r, K))
     bk <- matrix(0, r, K)
-    invB0_j <- diag(1/((R^2) * B_j))
+    if(r==1){
+      invB0_j <- 1/(R^2*B_j)  
+    }else{
+      invB0_j <- diag(1/((R^2) * B_j))
+    }
     for (k in 1:K) {
       Bk[, , k] <- chol2inv(chol(invB0_j + invsigma_j[, , k] * Nk_j[k]))
       bk[, k] <- Bk[, , k] %*% (invB0_j %*% b0_j + invsigma_j[, , k] %*% mean_yk[, k] * Nk_j[k])
@@ -248,7 +259,11 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
     
     
     #################### second step: classification of observations (conditional on knowing the parameters) Bettina:
-    mat <- sapply(1:K, function(k) eta_j[k] * dmvnorm(y, mu_j[, k], sigma_j[, , k]))
+    if(r==1){
+      mat <- sapply(1:K, function(k) eta_j[k] * dunivnorm(y, mu_j[, k], sigma_j[, , k]))
+    }else{
+      mat <- sapply(1:K, function(k) eta_j[k] * dmvnorm(y, mu_j[, k], sigma_j[, , k]))
+    }
     S_j <- apply(mat, 1, function(x) sample(1:K, 1, prob = x))
     Nk_j <- tabulate(S_j, K)
     Nk_neu_j <- Nk_j
@@ -287,19 +302,21 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
     
     
     #### (3b): sample the hyperparameter C0 conditionally on sigma:
-   # C0_j <- rwishart(2 * gn, 0.5 * chol2inv(chol(G0 + rowSums(invsigma_j, dims = 2))))$W  #from package 'bayesm'
-    
-    
-    if (is.null(fixedSigma)){
-      C0_j <- rwishart(2 * gn, 0.5 * chol2inv(chol(G0 + rowSums(invsigma_j, dims = 2))))$W  #from package 'bayesm'
+    if(r==1){
+      C0_j <-  rgamma(1, 2*gn, 0.5*(G0 + rowSums(invsigma_j, dims = 2)))
     }else{
-      C0_j <- fixedSigma
+      C0_j <- rwishart(2 * gn, 0.5 * chol2inv(chol(G0 + rowSums(invsigma_j, dims = 2))))$W #from package 'bayesm'
     }
     
-
+    
     #### (3c):assuming that the mean appearing in the normal prior on the group mean mu_k follows a
     #### improper prior p(b0)=const, sample b0 from N(1/K*sum(mu_i);1/K*B0 )
-    B0 <- diag((R^2) * B_j)
+    if(r==1){
+      B0 <- R^2*B_j
+    }else{
+      B0 <- diag((R^2) * B_j)
+    }
+    
     b0_j <- mvrnorm(1, rowSums(mu_j)/K, 1/K * B0)
     
     
@@ -340,37 +357,35 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
     #### additional step (3e): evaluating the mixture likelihood and the complete-data posterior
     
     ## evaluating the mixture likelihood:
-    mat_neu <- sapply(1:K, function(k) eta_j[k] * dmvnorm(y, mu_j[, k], sigma_j[, , k]))
+    if(r==1){
+      mat_neu <- sapply(1:K, function(k) eta_j[k] * dunivnorm(y, mu_j[, k], sigma_j[, , k]))
+    }else{
+      mat_neu <- sapply(1:K, function(k) eta_j[k] * dmvnorm(y, mu_j[, k], sigma_j[, , k]))
+    }
     mixlik_j <- sum(log(rowSums(mat_neu)))
     
     ## evaluating the mixture prior:
-    if (is.null(fixedSigma)){
-        mixprior_j <- log(MCMCpack::ddirichlet(as.vector(eta_j), rep(e0, K))) + sum(dmvnorm(t(mu_j), 
-                                                                                        b0, diag((R^2) * B_j), log = TRUE)) + sum(sapply(1:K, function(k) lndIWishart(2 * c0, 
-                                                                                                                                                                      0.5 * C0_j, sigma_j[, , k]))) + lndIWishart(2 * g0, 0.5 * G0, C0_j) + dgamma(e0, shape = a_gam, 
-                                                                                                                                                                                                                                                   scale = 1/b_gam, log = TRUE) + sum(dgamma(B_j, shape = nu, scale = 1/nu, log = TRUE))
-    }else{
+    if(r>1){
       mixprior_j <- log(MCMCpack::ddirichlet(as.vector(eta_j), rep(e0, K))) + sum(dmvnorm(t(mu_j), 
-                                                                                          b0, diag((R^2) * B_j), log = TRUE)) + sum(sapply(1:K, function(k) lndIWishart(2 * c0, 
-                                                                                                                                                                        0.5 * C0_j, sigma_j[, , k])))  + dgamma(e0, shape = a_gam, 
-                                                                                                                                                                                                                scale = 1/b_gam, log = TRUE) + sum(dgamma(B_j, shape = nu, scale = 1/nu, log = TRUE))
-    }
-    
-    ## evaluating the nonnormalized complete-data posterior:
-    cd <- c()
-    for (k in 1:K) {
-      if (sum(S_j == k)) {
-        cd[S_j == k] <- dmvnorm(y[S_j == k, ], mu_j[, k], sigma_j[, , k], log = TRUE)
+                                                                                            b0, B0, log = TRUE)) + sum(sapply(1:K, function(k) lndIWishart(2 * c0, 
+                                                                                                                                                           0.5 * C0_j, sigma_j[, , k]))) + lndIWishart(2 * g0, 0.5 * G0, C0_j) + dgamma(e0, shape = a_gam, 
+                                                                                                                                                                                                                                        scale = 1/b_gam, log = TRUE) + sum(dgamma(B_j, shape = nu, scale = 1/nu, log = TRUE))
+        
+      ## evaluating the nonnormalized complete-data posterior:
+      cd <- c()
+      for (k in 1:K) {
+        if (sum(S_j == k)) {
+          cd[S_j == k] <- dmvnorm(y[S_j == k, ], mu_j[, k], sigma_j[, , k], log = TRUE)
+        }
+      }
+      cdpost_j <- sum(cd) + mixprior_j
+      if (burnin == 0) {
+        result$mixlik[m] <- mixlik_j
+        result$mixprior[m] <- mixprior_j
+        result$nonnormpost[m] <- result$mixlik[m] + result$mixprior[m]
+        result$cdpost[m] <- cdpost_j
       }
     }
-    cdpost_j <- sum(cd) + mixprior_j
-    if (burnin == 0) {
-      result$mixlik[m] <- mixlik_j
-      result$mixprior[m] <- mixprior_j
-      result$nonnormpost[m] <- result$mixlik[m] + result$mixprior[m]
-      result$cdpost[m] <- cdpost_j
-    }
-    
     
     
     ###################### fourth step: permutation of the labeling and storing the results
@@ -387,16 +402,17 @@ MultVar_NormMixt_Gibbs_IndPriorNormalgamma <- function(y, S_0, mu_0, sigma_0, et
       result$acc_rate <- sum(acc)/M
     }
     
-    if ((burnin == 0) & (result$nonnormpost[m] > result$nonnormpost_mode_list[[K0_j]]$nonnormpost)) {
-      result$nonnormpost_mode_list[[K0_j]] <- list(nonnormpost = result$nonnormpost[m], mu = mu_j[, 
-                                                                                                  Nk_alt_j != 0], bk = bk[, Nk_alt_j != 0], Bk = Bk[, , Nk_alt_j != 0], eta = eta_j[Nk_alt_j != 
-                                                                                                                                                                                      0])
+    if(r>1){
+      if ((burnin == 0) & (result$nonnormpost[m] > result$nonnormpost_mode_list[[K0_j]]$nonnormpost)) {
+        result$nonnormpost_mode_list[[K0_j]] <- list(nonnormpost = result$nonnormpost[m], mu = mu_j[, 
+                                                                                                    Nk_alt_j != 0], bk = bk[, Nk_alt_j != 0], Bk = Bk[, , Nk_alt_j != 0], eta = eta_j[Nk_alt_j != 
+                                                                                                                                                                                        0])
+      }
+      if ((burnin == 0) & (result$mixlik[m] > result$mixlik_mode_list[[K0_j]]$mixlik)) {
+        result$mixlik_mode_list[[K0_j]] <- list(mixlik = result$mixlik[m], mu = mu_j[, Nk_alt_j != 
+                                                                                       0], Sigma = sigma_j[, , Nk_alt_j != 0], eta = eta_j[Nk_alt_j != 0])  ##Bettina fragen:mixture likelihood oder complete data likelihood nehmen?
+      }
     }
-    if ((burnin == 0) & (result$mixlik[m] > result$mixlik_mode_list[[K0_j]]$mixlik)) {
-      result$mixlik_mode_list[[K0_j]] <- list(mixlik = result$mixlik[m], mu = mu_j[, Nk_alt_j != 
-                                                                                     0], Sigma = sigma_j[, , Nk_alt_j != 0], eta = eta_j[Nk_alt_j != 0])  ##Bettina fragen:mixture likelihood oder complete data likelihood nehmen?
-    }
-    
     m <- m + 1
   }
   
@@ -432,3 +448,16 @@ dmvnorm <- function(x, mean, sigma, log = FALSE) {
   exp(logretval)
 }
 
+dunivnorm <- function(x, mean, sigma, log = FALSE) {
+  if (missing(mean)) {
+    mean <- 0
+  }
+  if (missing(sigma)) {
+    sigma <- 1
+  }
+  
+  logretval <- -(log(2 * pi) + 2*log(sigma) + (x-mean)^2/(2*sigma^2))/2
+  if (log) 
+    return(logretval)
+  exp(logretval)
+}

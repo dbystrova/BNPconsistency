@@ -23,14 +23,19 @@ loadRData <- function(fileName){
   get(ls()[ls() != "fileName"])
 }
 
-compute_log_lik<- function(K, y, M, burnin, Eta, Mu, Sigma){
+compute_log_lik<- function(K, y, M, Eta, Mu, Sigma){
   n_data = dim(y)[1]
+  r = dim(y)[2]
   plk = 0
   lik = matrix(0,n_data,K )
   log_lik = c()
   for (i in 1:(M)){
     for (j in 1:K){
-      lik[,j] = Eta[i,j]*dmvnorm(y,Mu[i,,j], Sigma[i,,,j])
+      if(r==1){
+        lik[,j] = Eta[i,j]*dunivnorm(y,Mu[i,,j], Sigma[i,,,j])
+      }else{
+        lik[,j] = Eta[i,j]*dmvnorm(y,Mu[i,,j], Sigma[i,,,j])
+      }
       #k_ = S_alt_matrix[j,i]
       #p_l <- sum(sapply(1:n_data, function(i) Eta[j,S_alt_matrix[j,i]] * dmvnorm(y[i,],Mu[j,,S_alt_matrix[j,i]], Sigma[j,,,S_alt_matrix[j,i]])))
       #k_ = S_alt_matrix[j,i]
@@ -43,10 +48,10 @@ compute_log_lik<- function(K, y, M, burnin, Eta, Mu, Sigma){
 
 
 
-MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000, priorOnE0 = FALSE, sigma_py = 0,a_gamma = 10,b_gamma =10, Sigma_prior = NULL, fixedS =NULL ) {
+MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000, priorOnE0 = FALSE, sigma_py = 0,a_gamma = 10,b_gamma =10) {
   print(seed_)
   y <- as.matrix(data$y)
-  #Mmax <- M + burnin
+  Mmax <- M + burnin
   
   ## read dimensions of data:
   r <- length(y[1, ])
@@ -57,28 +62,25 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000, priorOnE0 = 
   c_proposal <- 0.8
   
   R <- apply(y, 2, function(x) diff(range(x)))
-  if (is.null(Sigma_prior)){
-    R_mod = R
-   }else{
-    R_mod = R*Sigma_prior$coef
-  }
   
-  ## prior on Sigma_k [modification for sensitivity analysis with R/5, R/10, R/20]
-  if (is.null(fixedS)){
+  ## prior on Sigma_k
   c0 <- 2.5 + (r - 1)/2
   C0 <- 0.75 * cov(y)
   g0 <- 0.5 + (r - 1)/2
-  G0 <- 100 * g0/c0 * diag((1/R_mod^2))
+  if(r==1){
+    G0 <- 100 * g0/c0 * 1/R^2
   }else{
-      c0 <- 2.5 + (r - 1)/2
-      C0 <- (c0/100)* diag((R_mod^2))
+    G0 <- 100 * g0/c0 * diag((1/R^2))
   }
-
   
   ## prior on mu
   b0 <- apply(y, 2, median)
   B_0 <- rep(1, r)  #initial values for lambda are 1
-  B0 <- diag((R^2) * B_0)
+  if(r==1){
+    B0 <- R^2*B_0
+  }else{
+    B0 <- diag((R^2) * B_0)
+  }
   nu <- 0.5
   
   ## initial values for parameters to be estimated:
@@ -112,9 +114,9 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000, priorOnE0 = 
   ################ call MCMC procedure
   ############### run 2 parallel chains 
   estGibbs <- MultVar_NormMixt_Gibbs_IndPriorNormalgamma(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
-                                                         g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = priorOnE0, lambda = FALSE,seed =seed_, sigma_py =  sigma_py,a_g = a_gamma,b_g = b_gamma, fixedSigma=C0 )
+                                                         g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = priorOnE0, lambda = FALSE,seed =seed_, sigma_py =  sigma_py,a_g = a_gamma,b_g = b_gamma)
   estGibbs_2 <- MultVar_NormMixt_Gibbs_IndPriorNormalgamma(y, S_0, mu_0, sigma_0, eta_0, e0, c0, C0_0, 
-                                                         g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = priorOnE0, lambda = FALSE,seed =seed_+1, sigma_py =  sigma_py,a_g = a_gamma,b_g =b_gamma, fixedSigma =C0 )
+                                                         g0, G0, b0, B0, nu, B_0, M, burnin, c_proposal, priorOnE0 = priorOnE0, lambda = FALSE,seed =seed_+1, sigma_py =  sigma_py,a_g = a_gamma,b_g =b_gamma)
 
   
   Mu <-estGibbs$Mu
@@ -123,21 +125,22 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000, priorOnE0 = 
   S_alt_matrix <- estGibbs$S_alt_matrix
   B <- estGibbs$B
   e0_vector <- estGibbs$e0_vector
+  print(length(e0_vector))
   acc_rate <- estGibbs$acc_rate
         
   Eta_combined =   rbind(estGibbs$Eta,estGibbs_2$Eta)   
   Mu_combined =   abind(estGibbs$Mu,estGibbs_2$Mu ,along = 1 )                                
-  Sigma_combined =   abind(estGibbs$Sigma,estGibbs_2$Sigma ,along = 1 )                                
+  Sigma_combined =   abind(estGibbs$Sigma,estGibbs_2$Sigma,along = 1 )                                
   e0_combined =   c(estGibbs$e0_vector,estGibbs_2$e0_vector)                                
-  
+
   
   Nk_matrix_alt <- estGibbs$Nk_matrix_alt
   Nk_matrix_alt2 <- estGibbs_2$Nk_matrix_alt
   nonnormpost_mode_list <- estGibbs$nonnormpost_mode_list
 
   ## comute log-likelihood for each chain
-  ll1<- compute_log_lik(K, y, M, burnin, Eta, Mu, Sigma)
-  ll2<- compute_log_lik(K, y, M, burnin, estGibbs_2$Eta,estGibbs_2$Mu,estGibbs_2$Sigma)
+  ll1<- compute_log_lik(K, y, M, Eta, Mu, Sigma)
+  ll2<- compute_log_lik(K, y, M, estGibbs_2$Eta,estGibbs_2$Mu,estGibbs_2$Sigma)
   ## covergence diagnostics
   log_lik_combines <- mcmc.list(mcmc(ll1),mcmc(ll2))
   Rhat_ll<- gelman.diag(log_lik_combines)$psrf[1]
@@ -167,7 +170,6 @@ MCMC_function <- function(data, e0=0.01, K, M, burnin,seed_ = 1000, priorOnE0 = 
   K0_vector <- rowSums(Nk_matrix_alt != 0)  #vector with number of non-empty groups of each iteration
   K0_vector2 <- rowSums(Nk_matrix_alt2 != 0)  #vector with number of non-empty groups of each iteration
   p_K0 <- tabulate(c(K0_vector,K0_vector2), K)
-  p_K0
   #par(mfrow = c(1, 1))
   #barplot(p_K0, names = 1:K, xlab = "number of non-empty groups K0", col = "green", ylab = "freq")
   K0 <- which.max(p_K0)
@@ -240,7 +242,7 @@ comparison_n<- function(ds_list, alpha,K_, M_it, nburn){
   df_l = df_l_%>% gather(Process_type, density,  paste("P_", 1, sep = ""):paste("P_", length(ds_list), sep = ""))
   df_l2 = df2_l_%>% gather(Rh, Rh_val,  paste("Rh_", 1, sep = ""):paste("Rh_", length(ds_list), sep = ""))
   df_l3 = df3_l_%>% gather(N_, N_val,  paste("N_", 1, sep = ""):paste("N_", length(ds_list), sep = ""))
-  df_l$alpha = c(rep(alpha,(M_it -nburn)*2*length(ds_list))) 
+  df_l$alpha = c(rep(alpha,(M_it)*2*length(ds_list))) 
   df_l$Rh = df_l2$Rh_val
   df_l$N =df_l3$N_val
   return(list(line = df, hist =df_l, weights = df4_post_, eta = W_non_sorted, mu = Mu_mat, sig = S_mat))
@@ -301,10 +303,10 @@ comparison_n_2<- function(ds_list,K_, M_it, nburn, alpha_l){
   df$N =df3$N_val
   df$Al =df4$Alpha_val
   
-  df_l_ = tibble(K= 1:((M_it -nburn)*2))
-  df2_l_ = tibble(K= 1:((M_it - nburn)*2))
-  df3_l_ = tibble(K= 1:((M_it - nburn)*2))
-  df4_l_ = tibble(K= 1:((M_it - nburn)*2))
+  df_l_ = tibble(K= 1:((M_it)*2))
+  df2_l_ = tibble(K= 1:((M_it)*2))
+  df3_l_ = tibble(K= 1:((M_it)*2))
+  df4_l_ = tibble(K= 1:((M_it)*2))
   for (j in 1:length(ds_list)){
     name_ <- paste("P_", j, sep = "")
     name2_ <- paste("Rh_", j, sep = "")
@@ -324,80 +326,4 @@ comparison_n_2<- function(ds_list,K_, M_it, nburn, alpha_l){
   df_l$Al =df_l4$Alpha_val
   return(list(line = df, hist =df_l, weights = df5_post_, eta = W_non_sorted, mu = Mu_mat, sig = S_mat))
 }
-
-
-
-
-
-comparison_sens<- function(ds_list, alpha,K_, M_it, nburn, coef_R =1,fixS = NULL){
-  pk<- list()
-  N<- c()
-  R_h <- c()
-  W_non_sorted <- list()
-  W <- list()
-  Mu_mat <- list()
-  S_mat<- list()
-  Sigma_prior<- list()
-  Sigma_prior$coef = coef_R
-  for (i in 1:length(ds_list)){
-    data =  loadRData(ds_list[i])
-    pk[[i]] <- MCMC_function(data, e0=alpha, K=K_, M=M_it, burnin=nburn, Sigma_prior= Sigma_prior, fixedS = fixS )
-    N[i]<- dim(data$y)[1]
-    Eta_<- matrix(NA, nrow =dim(pk[[i]]$Eta)[1],ncol =  dim(pk[[i]]$Eta)[2] )
-    for (j in 1:dim(pk[[i]]$Eta)[1]){ Eta_[j,] <- sort(pk[[i]]$Eta[j,],decreasing = TRUE)}
-    W[[i]] <- Eta_
-    W_non_sorted[[i]] <- pk[[i]]$Eta
-    Mu_mat[[i]] <- pk[[i]]$Mu
-    S_mat[[i]] <-pk[[i]]$Sigma
-  }
-  df_ = tibble(K= 1:K_)
-  df2_ = tibble(K= 1:K_)
-  df3_ = tibble(K= 1:K_)
-  df4_ = tibble(K= 1:K_)
-  for (j in 1:length(ds_list)){
-    name_ <- paste("Pkn_", j, sep = "")
-    name2_ <- paste("Rh_", j, sep = "")
-    name3_ <- paste("N_", j, sep = "")
-    name4_ <- paste("W_", j, sep = "")
-    df_[,name_]<- pk[[j]]$p_k
-    df2_[,name2_]<- rep(pk[[j]]$ll_rhat,length(pk[[j]]$p_k))
-    df3_[,name3_]<- rep(N[j],length(pk[[j]]$p_k))
-    df4_[,name4_]<- rep(N[j],length(pk[[j]]$p_k))
-  }
-  df = df_%>% gather(Process_type, density,  paste("Pkn_", 1, sep = ""):paste("Pkn_", length(ds_list), sep = ""))
-  df2 = df2_%>% gather(Rh, Rh_val,  paste("Rh_", 1, sep = ""):paste("Rh_", length(ds_list), sep = ""))
-  df3 = df3_%>% gather(N_, N_val,  paste("N_", 1, sep = ""):paste("N_", length(ds_list), sep = ""))
-  df4 = df4_%>% gather(W_, W_val,  paste("W_", 1, sep = ""):paste("W_", length(ds_list), sep = ""))
-  W_df <- do.call(cbind, W)
-  df4_post <- cbind(df4,t(W_df))
-  
-  df4_post_ <- gather(df4_post, key = "it",value="weights", 4: dim(df4_post)[2])
-  
-  df$alpha = c(rep(alpha,dim(df_)[1]*length(ds_list))) 
-  df$Rh = df2$Rh_val
-  df$N =df3$N_val
-  
-  df_l_ = tibble(K= 1:((M_it)*2))
-  df2_l_ = tibble(K= 1:((M_it)*2))
-  df3_l_ = tibble(K= 1:((M_it)*2))
-  for (j in 1:length(ds_list)){
-    name_ <- paste("P_", j, sep = "")
-    name2_ <- paste("Rh_", j, sep = "")
-    name3_ <- paste("N_", j, sep = "")
-    df_l_[,name_]<- pk[[j]]$p_k_all
-    df2_l_[,name2_]<- rep(pk[[j]]$ll_rhat,length(pk[[j]]$p_k_all))
-    df3_l_[,name3_]<- rep(N[j],length(pk[[j]]$p_k_all))
-  }
-  df_l = df_l_%>% gather(Process_type, density,  paste("P_", 1, sep = ""):paste("P_", length(ds_list), sep = ""))
-  df_l2 = df2_l_%>% gather(Rh, Rh_val,  paste("Rh_", 1, sep = ""):paste("Rh_", length(ds_list), sep = ""))
-  df_l3 = df3_l_%>% gather(N_, N_val,  paste("N_", 1, sep = ""):paste("N_", length(ds_list), sep = ""))
-  df_l$alpha = c(rep(alpha,(M_it)*2*length(ds_list))) 
-  df_l$Rh = df_l2$Rh_val
-  df_l$N =df_l3$N_val
-  return(list(line = df, hist =df_l, weights = df4_post_, eta = W_non_sorted, mu = Mu_mat, sig = S_mat))
-}
-
-
-
-
 
