@@ -8,13 +8,10 @@ source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Utils_post.R")
 
 l2norm_MV_gaussian = function(theta.j, theta.i, diag = FALSE){
   l2_mu <- sum((theta.j[[1]] -theta.i[[1]] )^2)
-  #l2_Sigma = sqrt(sum((theta.j[[2]] -theta.i[[2]] )^2))
-  #l2_Sigma =norm(theta.j[[2]] -theta.i[[2]],"2")^2
   if (diag){l2_Sigma <- sum((theta.j[[2]] -theta.i[[2]] )^2) }
   else{
-    # l2_Sigma = sum(((theta.j[[2]] - theta.i[[2]])[upper.tri(theta.j[[2]] -theta.i[[2]], diag = TRUE)])^2)}
     l2_Sigma <- norm(theta.j[[2]] - theta.i[[2]],"F")^2}
-  return(sqrt(l2_mu + l2_Sigma ))
+  return(sqrt(l2_mu + l2_Sigma))
 }
 
 l2norm_univ <- function(theta.j, theta.i){
@@ -45,7 +42,6 @@ MTM_univ <- function(G, w_n, c){
   p.k <- G$p
   theta.k <- G$theta
   ## stage 1
-  #print(p.k)
   if (length(which(p.k == 0)) > 0) {
     theta.k <- theta.k[-c(which(p.k == 0))]
     p.k <- p.k[-c(which(p.k == 0))]
@@ -58,20 +54,15 @@ MTM_univ <- function(G, w_n, c){
   t <- length(tau)
   i <- 1 
   while (i<=t){
-    #print(tau[i])
     j <- 1
     while (j<=t){
-      #print(tau[j])
       if(tau[j]<tau[i]){
         if(l2norm_univ(theta.k[[tau[j]]], theta.k[[tau[i]]]) <= w_n){
           p_new[tau[i]] <- p.k[tau[j]] + p.k[tau[i]]
-          # p_new = p_new[-tau[j]]
           tau <- tau[-j]
           t <- length(tau)
-          #print(c(i,j))
           if (j<i) {i <- i-1}
           j <- j-1
-          #print(c(i,j))
         }
       }
       j <- j + 1
@@ -184,9 +175,9 @@ cmp_univ_MTM<- function(c_list, post,  alpha_l, N){
   return(df_mut)
 }
 
-#######################################
-######## Plot Multivariate DMP ########
-#######################################
+##################################
+######## Multivariate DMP ########
+##################################
 
 final_mult <- loadRData( "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_thyroid_DMP.RData")
 alpha_l <- as.numeric(levels(as.factor(final_mult$line$Al)))
@@ -197,9 +188,9 @@ c_vec_long <- seq(0, 1.2, length.out = 40)
 df <- df_post_MTM_alpha(c_vec = c_vec_long, post = final_mult, alpha_l, N = N)
 save(df, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_thyroid_DMP_MTM.RData")
 
-#####################################
-######## Plot Univariate DMP ########
-#####################################
+################################
+######## Univariate DMP ########
+################################
 
 final_univ <- loadRData( "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_Slc_DMP.RData")
 alpha_l <- as.numeric(levels(as.factor(final_univ$line$Al)))

@@ -37,9 +37,9 @@ to_df <- function(final){
   return(df)
 }
 
-######################################
-######## Plot Multivariate PY ########
-######################################
+#################################
+######## Multivariate PY ########
+#################################
 final <- loadRData( "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_thyroid_PY.RData")
 df <- to_df(final)
 
@@ -89,9 +89,9 @@ plot(p_h)
 dev.off()
 
 
-####################################
-######## Plot Univariate PY ########
-####################################
+###############################
+######## Univariate PY ########
+###############################
 final <- loadRData( "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_Slc_PY.RData")
 df <- to_df(final)
 

@@ -6,9 +6,9 @@ library(JuliaCall)
 source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Utils_post.R")
 
 fig_path <- "~/Documents/GitHub/BNPconsistency/figures/Figure_real_data/"
-#######################################
-######## Plot Multivariate DMP ########
-#######################################
+##################################
+######## Multivariate DMP ########
+##################################
 
 final_mult <- loadRData( "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_thyroid_DMP.RData")
 alpha_l <- as.numeric(levels(as.factor(final_mult$line$Al)))
@@ -59,9 +59,9 @@ dev.off()
 
 
 
-#####################################
-######## Plot Univariate DMP ########
-#####################################
+################################
+######## Univariate DMP ########
+################################
 
 final_univ <- loadRData( "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_Slc_DMP.RData")
 alpha_l <- as.numeric(levels(as.factor(final_univ$line$Al)))

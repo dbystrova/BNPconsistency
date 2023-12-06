@@ -69,7 +69,7 @@ py_mix <- function(it, burn, model = "LS", data, alpha, sigma){
   fit.sim2 <- PYdensity(y = data, mcmc = mcmc, prior = prior, output = output)
   fit.sim3 <- PYdensity(y = data, mcmc = mcmc, prior = prior, output = output)
   fit.sim4 <- PYdensity(y = data, mcmc = mcmc, prior = prior, output = output)
-  ## covergence diagnosis
+  ## con vergence diagnosis
   ll1 <- compute_log_lik(data, it, burn, fit.sim1$probs, fit.sim1$mean, fit.sim1$sigma2, fit.sim1$univariate)
   ll2 <- compute_log_lik(data, it, burn, fit.sim2$probs, fit.sim2$mean, fit.sim2$sigma2, fit.sim2$univariate)
   ll3 <- compute_log_lik(data, it, burn, fit.sim3$probs, fit.sim3$mean, fit.sim3$sigma2, fit.sim3$univariate)
@@ -78,6 +78,11 @@ py_mix <- function(it, burn, model = "LS", data, alpha, sigma){
   Rhat_ll<- gelman.diag(log_lik_combines)$psrf[1]
   print(paste("Rhat:", Rhat_ll))
   plot(c(ll1, ll2, ll3, ll4), type = "l", main = paste("Likelihood trace plot: alpha =", alpha, "and sig =", sigma))
+  
+  fit.sim1 <- list(clust=fit.sim1$clust, probs=fit.sim1$probs, mean=fit.sim1$mean, sigma2=fit.sim1$sigma2)
+  fit.sim2 <- list(clust=fit.sim2$clust, probs=fit.sim2$probs, mean=fit.sim2$mean, sigma2=fit.sim2$sigma2)
+  fit.sim3 <- list(clust=fit.sim3$clust, probs=fit.sim3$probs, mean=fit.sim3$mean, sigma2=fit.sim3$sigma2)
+  fit.sim4 <- list(clust=fit.sim4$clust, probs=fit.sim4$probs, mean=fit.sim4$mean, sigma2=fit.sim4$sigma2)
   
   if(is.null(dim(data))){
     n <- length(data)
@@ -96,7 +101,7 @@ sigma_seq = c(0.1,0.25)
 #################################
 ######## Multivariate PY ########
 #################################
-it = 70000; burn = 50000
+it = 70000; burn = 60000
 
 data_raw <- loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/real_data/thyroid.RData")
 data <- data_raw[,2:6]

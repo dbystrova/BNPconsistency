@@ -7,9 +7,9 @@ source("~/Documents/GitHub/BNPconsistency/scripts_for_figures/Utils_post.R")
 
 fig_path <- "~/Documents/GitHub/BNPconsistency/figures/Figure_real_data/"
 
-######################################
-######## Plot Multivariate PY ########
-######################################
+#################################
+######## Multivariate PY ########
+#################################
 df_mult_mtm <- loadRData( "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_thyroid_PY_MTM.RData")
 names(df_mult_mtm) <- c('c', 'Mean', 'MAP', 'alpha', 'sigma', 'Process_type')
 alpha_seq <- as.numeric(levels(as.factor(df_mult_mtm$alpha)))
@@ -34,9 +34,9 @@ plot(pm)
 dev.off()
 
 
-####################################
-######## Plot Univariate PY ########
-####################################
+###############################
+######## Univariate PY ########
+###############################
 df_univ_mtm <- loadRData( "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_Slc_PY_MTM.RData")
 names(df_univ_mtm) <- c('c', 'Mean', 'MAP', 'alpha', 'sigma', 'Process_type')
 alpha_seq <- as.numeric(levels(as.factor(df_univ_mtm$alpha)))

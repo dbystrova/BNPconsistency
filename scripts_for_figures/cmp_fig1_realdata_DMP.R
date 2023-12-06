@@ -28,10 +28,9 @@ comparison_data_alpha<- function(data,K_, M_it, nburn, alpha_l){
     Mu_mat[[i]] <- pk[[i]]$Mu
     S_mat[[i]] <-pk[[i]]$Sigma
   }
-  df_ <- tibble(K= 1:K_)
-  df3_ <- tibble(K= 1:K_)
-  df4_ <- tibble(K= 1:K_)
-  df5_ <- tibble(K= 1:K_)
+  df_ <- tibble(K=1:K_)
+  df3_ <- tibble(K=1:K_)
+  df4_ <- tibble(K=1:K_)
   for (j in 1:length(alpha_l)){
     name_ <- paste("Pkn_", j, sep="")
     name3_ <- paste("N_", j, sep="")
@@ -40,17 +39,10 @@ comparison_data_alpha<- function(data,K_, M_it, nburn, alpha_l){
     df_[,name_] <- pk[[j]]$p_k
     df3_[,name3_] <- rep(N, length(pk[[j]]$p_k))
     df4_[,name4_] <- rep(alpha_l[j]/K_, length(pk[[j]]$p_k))
-    df5_[,name5_] <- rep(N, length(pk[[j]]$p_k))
   }
   df <- df_ %>% gather(Process_type, density, paste("Pkn_", 1, sep=""):paste("Pkn_", length(alpha_l), sep=""))
   df3 <- df3_ %>% gather(N_, N_val, paste("N_", 1, sep=""):paste("N_", length(alpha_l), sep=""))
   df4 <- df4_ %>% gather(Alpha_, Alpha_val, paste("Alpha_", 1, sep=""):paste("Alpha_", length(alpha_l), sep=""))
-  df5 <- df5_ %>% gather(W_, W_val, paste("W_", 1, sep=""):paste("W_", length(alpha_l), sep=""))
-  
-  W_df <- do.call(cbind, W)
-  df5_post <- cbind(df5,t(W_df))
-  
-  df5_post_ <- gather(df5_post, key="it", value="weights", 4:dim(df5_post)[2])
   
   df$Al <- df4$Alpha_val
   df$N <- df3$N_val
@@ -71,17 +63,17 @@ comparison_data_alpha<- function(data,K_, M_it, nburn, alpha_l){
   df_l4 <- df4_l_ %>% gather(Alpha_, Alpha_val, paste("Alpha_", 1, sep=""):paste("Alpha_", length(alpha_l), sep=""))
   df_l$N <- df_l3$N_val
   df_l$Al <- df_l4$Alpha_val
-  return(list(line = df, hist = df_l, weights = df5_post_, eta = W_non_sorted, mu = Mu_mat, sig = S_mat))
+  return(list(line = df, hist = df_l, eta = W_non_sorted, mu = Mu_mat, sig = S_mat))
 }
 
 alpha = 1
 K_ = 10
-M_it = 50000
-nburn = 30000
 
 ##################################
 ######## Multivariate DMP ########
 ##################################
+M_it = 10000
+nburn = 30000
 
 data_raw <- loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/real_data/thyroid.RData")
 data <- list()
@@ -89,14 +81,15 @@ data$y <- data_raw[,2:6]
 N <- dim(data_raw[,2:6])[1]
 
 alpha_l <- c(0.01,0.5, 1, 10)
-final <- comparison_data_alpha(data= data,K_= 10 , M_it = M_it, nburn= nburn, alpha_l=alpha_l)
+final <- comparison_data_alpha(data = data, K_ = 10 , M_it = M_it, nburn = nburn, alpha_l = alpha_l)
 save(final, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_thyroid_DMP.RData")
-
 
 
 ################################
 ######## Univariate DMP ########
 ################################
+M_it = 20000
+nburn = 30000
 
 data_raw <- loadRData("~/Documents/GitHub/BNPconsistency/scripts_for_figures/real_data/Slc.RData")
 data <- list()
@@ -104,5 +97,6 @@ data$y <- unname(data_raw)
 N <- dim(data_raw)[1]
 
 alpha_l <- c(0.01, 0.5,1, 2)
-final <- comparison_data_alpha(data= data,K_= 10 , M_it = M_it, nburn= nburn, alpha_l=alpha_l)
+final <- comparison_data_alpha(data = data, K_ = 10 , M_it = M_it, nburn = nburn, alpha_l = alpha_l)
 save(final, file = "~/Documents/GitHub/BNPconsistency/saves_for_figures/cmp_Slc_DMP.RData")
+
